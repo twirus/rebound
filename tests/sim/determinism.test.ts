@@ -1,32 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { hashWorld } from '../../src/sim/hashWorld';
-import { stepWorld } from '../../src/sim/step';
-import { createWorld } from '../../src/sim/world';
+import { queuePush } from '../../src/sim/push';
+import { runTicks, worldWithBalls } from './helpers';
 
 const SEED = 12345;
 const TICKS = 10_000;
+const BALLS = 40;
 /**
  * Reference fingerprint. If a deliberate simulation change alters it, update it
  * in the same commit and say so in the commit message.
  */
-const REFERENCE_HASH = 'caefa4c1';
+const REFERENCE_HASH = '18f9abb6';
 
-function runWorld(seed: number, ticks: number): string {
-  const world = createWorld(seed);
-  for (let tick = 0; tick < ticks; tick++) stepWorld(world);
+function runWorld(seed: number): string {
+  const { world, arena } = worldWithBalls(seed, BALLS);
+  arena.minBounceSpeed = 420;
+  runTicks(world, TICKS, () => {
+    if (world.tick % 997 === 0) {
+      queuePush(world, { arenaIndex: 0, x: 0, y: 150, strength: 600, reach: 120 });
+    }
+  });
   return hashWorld(world);
 }
 
 describe('determinism', () => {
   it('produces the reference state after 10 000 ticks', () => {
-    expect(runWorld(SEED, TICKS)).toBe(REFERENCE_HASH);
+    expect(runWorld(SEED)).toBe(REFERENCE_HASH);
   });
 
   it('gives identical results on repeated runs', () => {
-    expect(runWorld(SEED, TICKS)).toBe(runWorld(SEED, TICKS));
+    expect(runWorld(SEED)).toBe(runWorld(SEED));
   });
 
   it('diverges for a different seed', () => {
-    expect(runWorld(SEED + 1, TICKS)).not.toBe(runWorld(SEED, TICKS));
+    expect(runWorld(SEED + 1)).not.toBe(runWorld(SEED));
   });
 });
