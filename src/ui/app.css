@@ -27,7 +27,6 @@
 }
 
 .title {
-  font-family: var(--font-label);
   font-weight: 600;
   font-size: var(--size-sm);
   letter-spacing: 0.06em;
@@ -42,7 +41,6 @@
 }
 
 .resource-name {
-  font-family: var(--font-label);
   font-weight: 500;
   font-size: var(--size-xs);
   letter-spacing: 0.06em;

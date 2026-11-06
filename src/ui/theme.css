@@ -10,8 +10,7 @@
   --ok: #9ccc65;
   --warn: #c9694a;
 
-  --font-body: 'Barlow', system-ui, sans-serif;
-  --font-label: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
+  --font: 'Roboto Condensed', system-ui, sans-serif;
 
   --size-xs: 11px;
   --size-sm: 13px;
@@ -35,7 +34,7 @@ body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-body);
+  font-family: var(--font);
   font-size: var(--size-sm);
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
