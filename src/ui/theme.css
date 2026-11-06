@@ -1,0 +1,46 @@
+:root {
+  --bg: #0a0a0a;
+  --panel: #141414;
+  --panel-raised: #1b1b1a;
+  --line: #2a2a28;
+  --text: #e8e6e1;
+  --text-dim: #8a8780;
+  --text-mute: #55534e;
+  --accent: #e0a040;
+  --ok: #9ccc65;
+  --warn: #c9694a;
+
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-label: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
+
+  --size-xs: 11px;
+  --size-sm: 13px;
+  --size-md: 15px;
+  --size-lg: 18px;
+  --size-xl: 24px;
+
+  --radius: 2px;
+  --transition: 150ms ease-out;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100%;
+}

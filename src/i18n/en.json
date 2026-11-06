@@ -1,0 +1,6 @@
+{
+  "resource.impulse.name": "Impulse",
+  "resource.impulse.perSecond": "{value} Impulse/s",
+  "shape.circle.name": "Circle",
+  "ball.basic.name": "Basic"
+}
