@@ -1,44 +1,78 @@
+import { effect } from '@preact/signals';
 import { useEffect, useRef } from 'preact/hooks';
+import { HitSynth } from '../audio/hitSynth';
 import { FixedStepLoop } from '../core/fixedStepLoop';
+import { game, startAutosave, stepGame, tapArena } from '../game/session';
 import { ArenaRenderer } from '../render/arenaRenderer';
 import { TICK_SECONDS } from '../sim/constants';
-import { stepWorld } from '../sim/step';
-import type { World } from '../sim/world';
+import { soundEnabled } from './settings';
 
-interface ArenaViewProps {
-  world: World;
+function createLoop(renderer: ArenaRenderer, synth: HitSynth): FixedStepLoop {
+  return new FixedStepLoop(TICK_SECONDS, {
+    step: () => {
+      stepGame();
+      renderer.collectEvents(game.world);
+      synth.collect(game.world);
+    },
+    render: (alpha) => {
+      renderer.draw(game.world, alpha);
+      synth.startFrame();
+    },
+  });
 }
 
-export function ArenaView({ world }: ArenaViewProps) {
+function startArena(canvas: HTMLCanvasElement): () => void {
+  const renderer = new ArenaRenderer(canvas);
+  const synth = new HitSynth();
+  const loop = createLoop(renderer, synth);
+  const observer = new ResizeObserver(([entry]) => {
+    if (!entry) return;
+    renderer.resize(entry.contentRect.width, entry.contentRect.height);
+    renderer.draw(game.world, 0);
+  });
+  observer.observe(canvas);
+
+  const onPointerDown = (event: PointerEvent) => {
+    synth.unlock();
+    const point = renderer.screenToArena(game.world, event.offsetX, event.offsetY);
+    tapArena(point.x, point.y);
+  };
+  const unlockAudio = () => synth.unlock();
+  // Hidden tab: no simulation, no drawing, no sound (offline income comes in a later stage).
+  const onVisibilityChange = () => {
+    if (document.hidden) {
+      loop.stop();
+      synth.suspend();
+    } else {
+      loop.start();
+      synth.resume();
+    }
+  };
+  canvas.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('keydown', unlockAudio);
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  const stopSoundSetting = effect(() => synth.setEnabled(soundEnabled.value));
+  const stopAutosave = startAutosave();
+  if (!document.hidden) loop.start();
+
+  return () => {
+    loop.stop();
+    observer.disconnect();
+    stopAutosave();
+    stopSoundSetting();
+    canvas.removeEventListener('pointerdown', onPointerDown);
+    window.removeEventListener('keydown', unlockAudio);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+  };
+}
+
+export function ArenaView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const renderer = new ArenaRenderer(canvas);
-    const loop = new FixedStepLoop(TICK_SECONDS, {
-      step: () => stepWorld(world),
-      render: (alpha) => renderer.draw(world, alpha),
-    });
-
-    const observer = new ResizeObserver(([entry]) => {
-      if (!entry) return;
-      renderer.resize(entry.contentRect.width, entry.contentRect.height);
-      renderer.draw(world, 0);
-    });
-    observer.observe(canvas);
-
-    // Hidden tab: no simulation and no drawing (offline income will cover the gap later).
-    const onVisibilityChange = () => (document.hidden ? loop.stop() : loop.start());
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    if (!document.hidden) loop.start();
-
-    return () => {
-      loop.stop();
-      observer.disconnect();
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    };
-  }, [world]);
+    return canvas ? startArena(canvas) : undefined;
+  }, []);
 
   return (
     <main class="arena-view">

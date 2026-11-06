@@ -8,7 +8,7 @@
 .bottom-bar {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   padding: 0 16px;
   flex-shrink: 0;
   white-space: nowrap;
@@ -22,16 +22,51 @@
 
 .bottom-bar {
   height: 32px;
+  gap: 10px;
   border-top: 1px solid var(--line);
   color: var(--text-dim);
+  overflow: hidden;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.title,
+.caption {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .title {
-  font-weight: 600;
   font-size: var(--size-sm);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--accent);
+}
+
+.caption {
+  font-size: var(--size-xs);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.dim {
+  color: var(--text-dim);
+}
+
+.mute {
+  color: var(--text-mute);
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.warn-text {
+  color: var(--warn);
+  margin: 0;
 }
 
 .resource {
@@ -40,17 +75,45 @@
   gap: 6px;
 }
 
-.resource-name {
-  font-weight: 500;
-  font-size: var(--size-xs);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.resource .caption {
   color: var(--text-dim);
 }
 
 .resource-amount {
   font-size: var(--size-md);
   font-weight: 500;
+}
+
+.income {
+  color: var(--text);
+}
+
+.text-button {
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.text-button:hover {
+  color: var(--text);
+}
+
+.text-button.accent {
+  color: var(--accent);
+}
+
+button:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .arena-view {
@@ -65,4 +128,12 @@
   width: 100%;
   height: 100%;
   display: block;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+@media (max-width: 560px) {
+  .hide-narrow {
+    display: none;
+  }
 }

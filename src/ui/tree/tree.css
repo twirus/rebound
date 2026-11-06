@@ -1,0 +1,239 @@
+.tree-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.tree-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.branch-panel {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--line);
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.branch-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 16px;
+  border-left: 3px solid;
+  font-size: var(--size-xs);
+}
+
+.tree-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 16px 24px 24px;
+}
+
+.tree-columns {
+  position: relative;
+  height: 28px;
+}
+
+.tree-columns span {
+  position: absolute;
+  top: 0;
+}
+
+.tree-canvas {
+  position: relative;
+}
+
+.tree-lines {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.tree-lines path {
+  fill: none;
+  stroke-width: 2;
+}
+
+.line-idle {
+  stroke: var(--line);
+}
+
+.line-active {
+  stroke: var(--accent);
+}
+
+.tree-card {
+  position: absolute;
+  width: 232px;
+  height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 10px 12px 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.tree-card-name {
+  font-size: var(--size-lg);
+  font-weight: 500;
+}
+
+.tree-card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  animation: bought-flash 300ms ease-out;
+}
+
+.tree-card.affordable {
+  border-color: rgb(156 204 101 / 0.6);
+  border-left-color: var(--ok);
+}
+
+.tree-card.owned {
+  border-left-color: var(--accent);
+}
+
+.tree-card.status-maxed {
+  border-color: var(--accent);
+}
+
+.tree-card.selected {
+  border: 2px solid var(--accent);
+  border-left-width: 3px;
+  background: var(--panel-raised);
+}
+
+.tree-card.status-locked .tree-card-name {
+  color: var(--text-mute);
+}
+
+.tree-card.status-hidden {
+  opacity: 0.35;
+}
+
+.price {
+  font-size: var(--size-sm);
+  font-weight: 500;
+}
+
+.price.dim {
+  color: var(--text-dim);
+}
+
+@keyframes bought-flash {
+  from {
+    color: var(--accent);
+  }
+}
+
+.tree-details {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+  overflow-y: auto;
+}
+
+.details-name {
+  margin: 0;
+  font-size: var(--size-xl);
+  font-weight: 500;
+}
+
+.details-description {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--size-md);
+  line-height: 1.35;
+}
+
+.effect-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.effect-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.details-buy {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.buy-button {
+  min-height: 40px;
+  padding: 0 20px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.buy-button:hover:not(:disabled) {
+  background: var(--panel-raised);
+}
+
+.buy-button:disabled {
+  border-color: var(--line);
+  color: var(--text-mute);
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .branch-panel {
+    display: none;
+  }
+
+  .tree-body {
+    flex-direction: column;
+  }
+
+  .tree-scroll {
+    padding: 12px 16px;
+  }
+
+  .tree-details {
+    width: auto;
+    max-height: 45%;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}

@@ -1,21 +1,27 @@
 import { meta } from '../content/meta';
-import { resources } from '../content/resources';
-import { formatNumber } from '../core/formatNumber';
-import { resourceAmounts } from '../game/resources';
+import { resourceAmounts } from '../game/store';
 import { t } from '../i18n';
+import { ResourceList } from './ResourceList';
+import { soundEnabled } from './settings';
+import { treeOpen } from './uiState';
 
 export function TopBar() {
   return (
     <header class="top-bar">
       <span class="title">{meta.title}</span>
-      {resources.map((resource) => (
-        <span class="resource" key={resource.id}>
-          <span class="resource-name">{t(resource.nameKey)}</span>
-          <span class="resource-amount" style={{ color: resource.color }}>
-            {formatNumber(resourceAmounts.value[resource.id] ?? 0)}
-          </span>
-        </span>
-      ))}
+      <ResourceList amounts={resourceAmounts.value} />
+      <span class="spacer" />
+      <button
+        class="text-button"
+        type="button"
+        aria-pressed={soundEnabled.value}
+        onClick={() => (soundEnabled.value = !soundEnabled.value)}
+      >
+        {t(soundEnabled.value ? 'hud.soundOn' : 'hud.soundOff')}
+      </button>
+      <button class="text-button accent" type="button" onClick={() => (treeOpen.value = true)}>
+        {t('hud.tree')}
+      </button>
     </header>
   );
 }

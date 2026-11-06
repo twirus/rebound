@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { balls } from '../src/content/balls';
+import { branches } from '../src/content/branches';
 import { gems } from '../src/content/gems';
 import { resources } from '../src/content/resources';
 import { shapes } from '../src/content/shapes';
+import { stats } from '../src/content/stats';
 import { treeNodes } from '../src/content/tree';
 import type { NodeId, TreeNodeDef } from '../src/content/types';
+import { BASE_STATS } from '../src/game/balance';
 import en from '../src/i18n/en.json';
 import ru from '../src/i18n/ru.json';
 
@@ -18,11 +21,15 @@ const allEntries: readonly Identified[] = [
   ...balls,
   ...gems,
   ...treeNodes,
+  ...branches,
+  ...stats,
 ];
 
 const allTextKeys: readonly string[] = [
   ...resources.flatMap((resource) => [resource.nameKey, resource.perSecondKey]),
   ...shapes.map((shape) => shape.nameKey),
+  ...branches.map((branch) => branch.nameKey),
+  ...stats.map((stat) => stat.nameKey),
   ...balls.map((ball) => ball.nameKey),
   ...gems.flatMap((gem) => [gem.nameKey, gem.descriptionKey, gem.downsideKey]),
   ...treeNodes.flatMap((node) => [node.nameKey, node.descriptionKey]),
@@ -78,6 +85,26 @@ describe('content', () => {
     const nodeIds = new Set(treeNodes.map((node) => node.id));
     const broken = treeNodes.flatMap((node) => node.requires.filter((id) => !nodeIds.has(id)));
     expect(broken).toEqual([]);
+  });
+
+  it('gives every node a known branch, levels and costs in known resources', () => {
+    const branchIds = branches.map((branch) => branch.id);
+    const resourceIds = resources.map((resource) => resource.id);
+    const invalid = treeNodes.filter(
+      (node) =>
+        !branchIds.includes(node.branch) ||
+        node.maxLevel < 1 ||
+        node.costs.length === 0 ||
+        node.costs.some(
+          (cost) => !resourceIds.includes(cost.resource) || cost.base <= 0 || cost.growth < 1,
+        ),
+    );
+    expect(invalid.map((node) => node.id)).toEqual([]);
+  });
+
+  it('describes every stat that has a base value', () => {
+    const described: string[] = stats.map((stat) => stat.id);
+    expect(Object.keys(BASE_STATS).filter((id) => !described.includes(id))).toEqual([]);
   });
 
   it('has no cycles in the tree', () => {

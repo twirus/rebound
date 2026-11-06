@@ -65,10 +65,54 @@ export interface GemDef {
   load: number;
 }
 
+export type BranchId = `branch:${string}`;
+
+export interface BranchDef {
+  id: BranchId;
+  nameKey: TextKey;
+  /** Muted colour of the branch stripe in the tree. */
+  color: string;
+}
+
+/** Numbers derived from bought nodes. Base values live in game/balance.ts. */
+export type StatId =
+  | 'stat:ball-count'
+  | 'stat:ball-limit'
+  | 'stat:impulse-per-hit'
+  | 'stat:impulse-per-collision'
+  | 'stat:min-bounce-speed'
+  | 'stat:arena-scale'
+  | 'stat:tap-strength'
+  | 'stat:tap-cooldown'
+  | 'stat:auto-tap'
+  | 'stat:auto-tap-interval';
+
+/** Price of level L is ceil(base × growth^L). */
+export interface NodeCost {
+  resource: ResourceId;
+  base: number;
+  growth: number;
+}
+
+/** Added to a stat once per bought level. */
+export interface StatModifier {
+  stat: StatId;
+  add: number;
+}
+
 export interface TreeNodeDef {
   id: NodeId;
+  branch: BranchId;
   nameKey: TextKey;
   descriptionKey: TextKey;
   /** Empty for a branch root. Layout is derived from these links; no coordinates in data. */
   requires: readonly NodeId[];
+  maxLevel: number;
+  costs: readonly NodeCost[];
+  effects: readonly StatModifier[];
+}
+
+export interface StatDef {
+  id: StatId;
+  nameKey: TextKey;
 }

@@ -17,6 +17,11 @@ export default tseslint.config(
     },
   },
   {
+    // describe() blocks group many small tests; their length is not a smell.
+    files: ['tests/**/*.ts'],
+    rules: { 'max-lines-per-function': 'off' },
+  },
+  {
     files: ['src/sim/**/*.ts'],
     rules: {
       'no-restricted-properties': [
