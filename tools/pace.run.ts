@@ -10,8 +10,8 @@ import { canAfford, nextPrices, nodeStatus } from '../src/game/purchases';
 import { newGameState } from '../src/game/state';
 import { TICK_SECONDS } from '../src/sim/constants';
 
-const MINUTES = Number(process.env.PACE_MINUTES ?? 20);
-const TAPS = process.env.PACE_TAPS !== '0';
+const MINUTES = Number(import.meta.env.PACE_MINUTES ?? 20);
+const TAPS = import.meta.env.PACE_TAPS !== '0';
 const TICKS_PER_SECOND = Math.round(1 / TICK_SECONDS);
 const TAP_POINT = { x: 0, y: 120 };
 
@@ -55,6 +55,6 @@ it('prints the purchase timeline', () => {
   lines.push(
     `--- ${MINUTES} min, taps ${TAPS ? 'on' : 'off'}: ${bought}/${total} levels, longest wait ${longestWait}s`,
   );
-  lines.push(`income/s at end: ${game.income.perSecond()['resource:impulse'].toFixed(1)}`);
+  lines.push(`income/s at end: ${(game.income.perSecond()['resource:impulse'] ?? 0).toFixed(1)}`);
   console.log(lines.join('\n'));
 }, 600_000);
