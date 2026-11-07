@@ -19,6 +19,14 @@ export interface Ball {
   radius: number;
   mass: number;
   gravityScale: number;
+  /** A temporary copy (triangle split); clones never split again. */
+  clone: boolean;
+  /** Ticks a clone has left; 0 for permanent balls. */
+  lifeTicks: number;
+  /** Colour index picked up from a coloured wall, −1 for none. */
+  tint: number;
+  /** Hits in a row on walls of the current tint. */
+  streak: number;
 }
 
 export interface Arena {
@@ -108,6 +116,10 @@ export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
     radius: 0,
     mass: 0,
     gravityScale: 0,
+    clone: false,
+    lifeTicks: 0,
+    tint: -1,
+    streak: 0,
   };
   applyBallType(ball, typeId, arena);
   placeInSpawnArea(world, arena, ball);
@@ -115,6 +127,47 @@ export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
   world.nextBallId += 1;
   arena.balls.push(ball);
   return ball;
+}
+
+/**
+ * Adds a short-lived copy of `source` moving along (vx, vy). Returns null when
+ * the arena already holds `maxClones` clones.
+ */
+export function spawnClone(
+  world: World,
+  arena: Arena,
+  source: Ball,
+  vx: number,
+  vy: number,
+  lifeTicks: number,
+  maxClones: number,
+): Ball | null {
+  let clones = 0;
+  for (const ball of arena.balls) if (ball.clone) clones += 1;
+  if (clones >= maxClones) return null;
+  const clone: Ball = { ...source, id: world.nextBallId, vx, vy, clone: true, lifeTicks };
+  world.nextBallId += 1;
+  arena.balls.push(clone);
+  return clone;
+}
+
+/** Drops clones whose time is up, keeping the order of the rest. */
+export function expireClones(arena: Arena): void {
+  let kept = 0;
+  for (const ball of arena.balls) {
+    if (ball.clone) ball.lifeTicks -= 1;
+    if (ball.clone && ball.lifeTicks <= 0) continue;
+    arena.balls[kept] = ball;
+    kept += 1;
+  }
+  arena.balls.length = kept;
+}
+
+/** Balls that stay: everything except clones. */
+export function permanentBallCount(arena: Arena): number {
+  let count = 0;
+  for (const ball of arena.balls) if (!ball.clone) count += 1;
+  return count;
 }
 
 /**
@@ -127,8 +180,11 @@ export function setArenaShape(world: World, arena: Arena, def: ShapeDef, radius:
   arena.radius = radius;
   arena.shape = createShapeState(def, radius);
   if (!shapeChanged) return;
+  arena.balls = arena.balls.filter((ball) => !ball.clone);
   for (const ball of arena.balls) {
     applyBallType(ball, ball.typeId, arena);
+    ball.tint = -1;
+    ball.streak = 0;
     placeInSpawnArea(world, arena, ball);
   }
 }

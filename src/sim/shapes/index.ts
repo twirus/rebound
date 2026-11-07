@@ -3,12 +3,18 @@ import type { ShapeDef, ShapeKind } from '../../content/types';
 import type { Ball } from '../world';
 import type { ShapeBehavior, ShapeContext, ShapeState } from './behavior';
 import { circleBehavior } from './circle';
+import { hexagonBehavior } from './hexagon';
 import { ringsBehavior } from './rings';
+import { squareBehavior } from './square';
+import { triangleBehavior } from './triangle';
 
 /** Every wall behaviour, by the `kind` used in content/shapes.ts. */
 const behaviors: { [Kind in ShapeKind]: ShapeBehavior<Extract<ShapeState, { kind: Kind }>> } = {
   circle: circleBehavior,
   rings: ringsBehavior,
+  triangle: triangleBehavior,
+  square: squareBehavior,
+  hexagon: hexagonBehavior,
 };
 
 /*

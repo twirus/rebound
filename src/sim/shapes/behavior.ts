@@ -2,15 +2,19 @@ import type { Rng } from '../../core/rng';
 import type { StateHasher } from '../../core/hash';
 import type { ShapeDef } from '../../content/types';
 import type { SimEventBuffer } from '../events';
-import type { Arena, Ball } from '../world';
+import type { Arena, Ball, World } from '../world';
 import type { CircleState } from './circle';
+import type { HexagonState } from './hexagon';
 import type { RingsState } from './rings';
+import type { SquareState } from './square';
+import type { TriangleState } from './triangle';
 
 /** Runtime state of an arena's walls; one member per shape kind. */
-export type ShapeState = CircleState | RingsState;
+export type ShapeState = CircleState | RingsState | TriangleState | SquareState | HexagonState;
 
 /** What a wall behaviour may touch during a tick. Reused, never stored. */
 export interface ShapeContext {
+  world: World;
   arena: Arena;
   arenaIndex: number;
   events: SimEventBuffer;

@@ -1,11 +1,18 @@
-import type { Arena, Ball, World } from '../sim/world';
-import { findBall } from '../sim/world';
+import { TICK_SECONDS } from '../sim/constants';
+import { findBall, findShape, type Arena, type Ball, type World } from '../sim/world';
 import { BallTrails } from './ballTrails';
 import { PushRings } from './pushRings';
 import { drawShapeWalls } from './shapeWalls';
 import { ShardBursts } from './shardBursts';
 
 const WALL_WIDTH_PX = 1.5;
+const CLONE_ALPHA = 0.6;
+/** Copies fade out over their last this many seconds. */
+const CLONE_FADE_SECONDS = 1;
+
+function cloneAlpha(lifeTicks: number): number {
+  return CLONE_ALPHA * Math.min(1, (lifeTicks * TICK_SECONDS) / CLONE_FADE_SECONDS);
+}
 const WALL_ALPHA = 0.85;
 /** Share of the shorter canvas side the arena occupies. */
 const ARENA_FILL = 0.9;
@@ -109,8 +116,10 @@ export class ArenaRenderer {
       this.trails.record(arena.balls, this.positions, now);
       this.trails.draw(context, arena.balls, now);
     }
+    const tints = findShape(arena.shapeId).hexagon?.colors ?? [];
     arena.balls.forEach((ball, index) => {
-      context.fillStyle = findBall(ball.typeId).color;
+      context.fillStyle = tints[ball.tint] ?? findBall(ball.typeId).color;
+      context.globalAlpha = ball.clone ? cloneAlpha(ball.lifeTicks) : 1;
       context.beginPath();
       context.arc(
         this.positions[index * 2] ?? 0,
@@ -121,6 +130,7 @@ export class ArenaRenderer {
       );
       context.fill();
     });
+    context.globalAlpha = 1;
     this.shardBursts.draw(context, this.colors.wall, scale, now);
     this.pushRings.draw(context, this.colors.wall, scale, now);
     context.restore();

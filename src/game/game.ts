@@ -6,6 +6,7 @@ import {
   createWorld,
   applyBallType,
   findShape,
+  permanentBallCount,
   setArenaShape,
   spawnBall,
   type Arena,
@@ -27,6 +28,7 @@ import { unlockedBalls, unlockedShapes } from './unlocks';
 
 const IMPULSE: ResourceId = 'resource:impulse';
 const SHARDS: ResourceId = 'resource:shards';
+const SPECTRUM: ResourceId = 'resource:spectrum';
 const MAIN_ARENA = 0;
 
 interface ScheduledPush {
@@ -138,8 +140,11 @@ export class Game {
     arena.minBounceSpeed = this.stats['stat:min-bounce-speed'];
     const shapeLimit = findShape(this.state.arena.shape).maxBalls ?? Number.POSITIVE_INFINITY;
     const wanted = Math.min(this.stats['stat:ball-count'], shapeLimit);
-    if (arena.balls.length > wanted) arena.balls.length = wanted;
-    while (arena.balls.length < wanted) {
+    // Clones come and go on their own; only permanent balls follow the stats.
+    if (permanentBallCount(arena) > wanted) {
+      arena.balls = arena.balls.filter((ball) => !ball.clone).slice(0, wanted);
+    }
+    while (permanentBallCount(arena) < wanted) {
       spawnBall(this.world, arena, this.state.arena.ball);
     }
   }
@@ -158,6 +163,7 @@ export class Game {
     this.earnings.collect(this.world.events, this.stats);
     this.earn(IMPULSE, this.earnings.impulse);
     this.earn(SHARDS, this.earnings.shards);
+    this.earn(SPECTRUM, this.earnings.spectrum);
   }
 
   private earn(resource: ResourceId, amount: number): void {

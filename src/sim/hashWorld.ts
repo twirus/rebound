@@ -20,6 +20,9 @@ export function hashWorld(world: World): string {
       hasher.addNumber(ball.vx);
       hasher.addNumber(ball.vy);
       hasher.addNumber(ball.radius);
+      hasher.addNumber(ball.clone ? ball.lifeTicks : 0);
+      hasher.addNumber(ball.tint);
+      hasher.addNumber(ball.streak);
     }
   }
   return hasher.digest();

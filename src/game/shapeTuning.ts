@@ -1,8 +1,10 @@
 import type { ShapeDef } from '../content/types';
 import type { Stats } from './stats';
 
-/** The shape as content defines it, with tree upgrades applied. */
-export function tunedShape(def: ShapeDef, stats: Stats): ShapeDef {
+/** Fewest hits a combo or a portal shift can need, whatever the upgrades. */
+const MIN_COUNT = 1;
+
+function tunedRings(def: ShapeDef, stats: Stats): ShapeDef {
   if (!def.rings) return def;
   const count = def.rings.count + stats['stat:ring-count'];
   return {
@@ -14,5 +16,31 @@ export function tunedShape(def: ShapeDef, stats: Stats): ShapeDef {
       gapDegrees: def.rings.gapDegrees + stats['stat:ring-gap'],
       degreesPerSecond: def.rings.degreesPerSecond * stats['stat:ring-spin'],
     },
+  };
+}
+
+/** The shape as content defines it, with tree upgrades applied. */
+export function tunedShape(def: ShapeDef, stats: Stats): ShapeDef {
+  const tuned = tunedRings(def, stats);
+  return {
+    ...tuned,
+    ...(def.triangle && {
+      triangle: {
+        ...def.triangle,
+        cornerShare: def.triangle.cornerShare + stats['stat:corner-share'],
+        cloneSeconds: def.triangle.cloneSeconds + stats['stat:clone-seconds'],
+      },
+    }),
+    ...(def.square && {
+      square: {
+        hitsPerShift: Math.max(MIN_COUNT, def.square.hitsPerShift + stats['stat:portal-shift']),
+      },
+    }),
+    ...(def.hexagon && {
+      hexagon: {
+        ...def.hexagon,
+        comboLength: Math.max(MIN_COUNT, def.hexagon.comboLength + stats['stat:combo-length']),
+      },
+    }),
   };
 }

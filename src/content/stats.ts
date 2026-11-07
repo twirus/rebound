@@ -20,4 +20,11 @@ export const stats: readonly StatDef[] = [
   { id: 'stat:ring-spin', nameKey: 'stat.ring-spin.name' },
   { id: 'stat:shards-per-break', nameKey: 'stat.shards-per-break.name' },
   { id: 'stat:shards-per-escape', nameKey: 'stat.shards-per-escape.name' },
+  { id: 'stat:corner-share', nameKey: 'stat.corner-share.name' },
+  { id: 'stat:clone-seconds', nameKey: 'stat.clone-seconds.name' },
+  { id: 'stat:impulse-per-corner', nameKey: 'stat.impulse-per-corner.name' },
+  { id: 'stat:portal-shift', nameKey: 'stat.portal-shift.name' },
+  { id: 'stat:impulse-per-portal', nameKey: 'stat.impulse-per-portal.name' },
+  { id: 'stat:combo-length', nameKey: 'stat.combo-length.name' },
+  { id: 'stat:spectrum-per-combo', nameKey: 'stat.spectrum-per-combo.name' },
 ];

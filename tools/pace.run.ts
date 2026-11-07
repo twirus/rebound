@@ -8,13 +8,14 @@ import { treeNodes } from '../src/content/tree';
 import { Game } from '../src/game/game';
 import { canAfford, nextPrices, nodeStatus } from '../src/game/purchases';
 import { newGameState } from '../src/game/state';
+import { unlockedShapes } from '../src/game/unlocks';
 import { TICK_SECONDS } from '../src/sim/constants';
 
 const MINUTES = Number(import.meta.env.PACE_MINUTES ?? 20);
 const TAPS = import.meta.env.PACE_TAPS !== '0';
 const TICKS_PER_SECOND = Math.round(1 / TICK_SECONDS);
 const TAP_POINT = { x: 0, y: 120 };
-const RINGS_EVERY_MINUTES = 3;
+const CIRCLE_MINUTES_PER_VISIT = 3;
 
 function cheapestAffordable(game: Game): (typeof treeNodes)[number] | undefined {
   const levels = game.state.nodeLevels;
@@ -26,10 +27,17 @@ function cheapestAffordable(game: Game): (typeof treeNodes)[number] | undefined 
     )[0];
 }
 
-/** Like a player who checks in on the Rings now and then: one minute out of every three. */
+/**
+ * Like a player who keeps the Circle as home and visits each other unlocked
+ * shape for a minute in turn: Circle, other, Circle, Circle, next other, …
+ */
 function pickShape(game: Game, second: number): void {
-  const wanted =
-    Math.floor(second / 60) % RINGS_EVERY_MINUTES === 0 ? 'shape:rings' : 'shape:circle';
+  const others = unlockedShapes(game.state.nodeLevels).filter((id) => id !== 'shape:circle');
+  const minute = Math.floor(second / 60);
+  const visit = minute % CIRCLE_MINUTES_PER_VISIT === 0 && others.length > 0;
+  const wanted = visit
+    ? (others[Math.floor(minute / CIRCLE_MINUTES_PER_VISIT) % others.length] ?? 'shape:circle')
+    : 'shape:circle';
   if (game.state.arena.shape !== wanted) game.setShape(wanted);
 }
 
@@ -66,7 +74,7 @@ it('prints the purchase timeline', () => {
   );
   const income = game.income.perSecond();
   lines.push(
-    `income/s at end: impulse ${(income['resource:impulse'] ?? 0).toFixed(1)}, shards ${(income['resource:shards'] ?? 0).toFixed(2)}`,
+    `income/s at end: impulse ${(income['resource:impulse'] ?? 0).toFixed(1)}, shards ${(income['resource:shards'] ?? 0).toFixed(2)}, spectrum ${(income['resource:spectrum'] ?? 0).toFixed(2)}`,
   );
   console.log(lines.join('\n'));
 }, 600_000);

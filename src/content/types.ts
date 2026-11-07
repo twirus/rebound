@@ -35,7 +35,37 @@ export interface ResourceDef {
 }
 
 /** Which wall behaviour in sim/shapes/ runs the shape. */
-export type ShapeKind = 'circle' | 'rings';
+export type ShapeKind = 'circle' | 'rings' | 'triangle' | 'square' | 'hexagon';
+
+/** Regular polygon walls; the radius is the distance from the centre to a corner. */
+export interface PolygonParams {
+  sides: number;
+  /** Direction of the first corner; -90 puts it straight up. */
+  rotationDegrees: number;
+}
+
+/** A hit this close to a corner splits the ball; see sim/shapes/triangle.ts. */
+export interface TriangleParams {
+  /** Share of a side's length, measured from each end, that counts as the corner. */
+  cornerShare: number;
+  cloneSeconds: number;
+  /** Clones alive at once in one arena. */
+  maxClones: number;
+}
+
+/** One side is a portal to the opposite side; see sim/shapes/square.ts. */
+export interface SquareParams {
+  /** The portal moves one side clockwise after this many wall hits. */
+  hitsPerShift: number;
+}
+
+/** Coloured sides; see sim/shapes/hexagon.ts. */
+export interface HexagonParams {
+  /** Sides take these colours in turn. */
+  colors: readonly string[];
+  /** Hits on same-coloured sides in a row that make a combo. */
+  comboLength: number;
+}
 
 /** Nested rotating rings with one gap each; see sim/shapes/rings.ts. */
 export interface RingsParams {
@@ -65,6 +95,10 @@ export interface ShapeDef {
   /** Ball size in this shape relative to the ball type; 1 when omitted. */
   ballScale?: number;
   rings?: RingsParams;
+  polygon?: PolygonParams;
+  triangle?: TriangleParams;
+  square?: SquareParams;
+  hexagon?: HexagonParams;
 }
 
 export interface BallDef {
@@ -120,7 +154,14 @@ export type StatId =
   | 'stat:ring-gap'
   | 'stat:ring-spin'
   | 'stat:shards-per-break'
-  | 'stat:shards-per-escape';
+  | 'stat:shards-per-escape'
+  | 'stat:corner-share'
+  | 'stat:clone-seconds'
+  | 'stat:impulse-per-corner'
+  | 'stat:portal-shift'
+  | 'stat:impulse-per-portal'
+  | 'stat:combo-length'
+  | 'stat:spectrum-per-combo';
 
 /** Price of level L is ceil(base × growth^L). */
 export interface NodeCost {

@@ -7,7 +7,7 @@ import {
   TICK_SECONDS,
 } from './constants';
 import { collideShape, stepShape, type ShapeContext } from './shapes';
-import type { Arena, Ball, World } from './world';
+import { expireClones, type Arena, type Ball, type World } from './world';
 
 /*
  * Only + - * / and Math.sqrt are used in sim/ (trigonometry comes from
@@ -35,7 +35,7 @@ function substepCount(arena: Arena): number {
 }
 
 export function stepArena(arena: Arena, arenaIndex: number, world: World): void {
-  const context: ShapeContext = { arena, arenaIndex, events: world.events, rng: world.rng };
+  const context: ShapeContext = { world, arena, arenaIndex, events: world.events, rng: world.rng };
   stepShape(arena.shape, context);
   for (const ball of arena.balls) {
     ball.prevX = ball.x;
@@ -56,4 +56,5 @@ export function stepArena(arena: Arena, arenaIndex: number, world: World): void 
       limitSpeed(ball, MAX_BALL_SPEED);
     }
   }
+  expireClones(arena);
 }

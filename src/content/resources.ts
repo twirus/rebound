@@ -13,4 +13,10 @@ export const resources: readonly ResourceDef[] = [
     perSecondKey: 'resource.shards.perSecond',
     color: '#7fb2c9',
   },
+  {
+    id: 'resource:spectrum',
+    nameKey: 'resource.spectrum.name',
+    perSecondKey: 'resource.spectrum.perSecond',
+    color: '#b59ad1',
+  },
 ];

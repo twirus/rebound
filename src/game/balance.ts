@@ -25,6 +25,17 @@ export const BASE_STATS: Readonly<Record<StatId, number>> = {
   'stat:ring-spin': 1,
   'stat:shards-per-break': 1,
   'stat:shards-per-escape': 5,
+  /** Added to the share of each side that counts as a corner. */
+  'stat:corner-share': 0,
+  /** Added to how long a triangle clone lives, seconds. */
+  'stat:clone-seconds': 0,
+  'stat:impulse-per-corner': 2,
+  /** Added to the hits it takes the portal to move (negative: more often). */
+  'stat:portal-shift': 0,
+  'stat:impulse-per-portal': 3,
+  /** Added to the streak a hexagon combo needs (negative: shorter). */
+  'stat:combo-length': 0,
+  'stat:spectrum-per-combo': 1,
 };
 
 /** A node raising the key stat cannot be bought past the value of the mapped stat. */

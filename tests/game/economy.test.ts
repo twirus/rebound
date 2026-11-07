@@ -93,10 +93,10 @@ describe('buying', () => {
 
   it('never sells content of a later version', () => {
     const state = richState();
-    const triangle = findNode('node:triangle');
-    for (const id of triangle.requires) state.nodeLevels[id] = 1;
-    expect(nodeStatus(triangle, state.nodeLevels, computeStats(state.nodeLevels))).toBe('hidden');
-    expect(buyLevel(state, triangle.id, computeStats(state.nodeLevels))).toBe(false);
+    const future = findNode('node:heavy-ball');
+    for (const id of future.requires) state.nodeLevels[id] = 1;
+    expect(nodeStatus(future, state.nodeLevels, computeStats(state.nodeLevels))).toBe('hidden');
+    expect(buyLevel(state, future.id, computeStats(state.nodeLevels))).toBe(false);
   });
 
   it('can buy every node to its maximum with enough resources', () => {
