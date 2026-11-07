@@ -94,4 +94,33 @@ describe('ball types', () => {
     stepWorld(world);
     expect(other.vx).toBeLessThan(0);
   });
+
+  it('bouncy speeds up with every wall hit', () => {
+    const { world, arena, balls } = ballWorld(['ball:bouncy']);
+    arena.gravity = 0;
+    const ball = place(balls[0], 0, 0, 300, 0);
+    countEvents(world, 120 * 2, 'wall-hit');
+    expect(Math.hypot(ball.vx, ball.vy)).toBeGreaterThan(300);
+  });
+
+  it('chameleon takes the next colour on every hit', () => {
+    const { world, arena, balls } = ballWorld(['ball:chameleon']);
+    arena.gravity = 0;
+    const ball = place(balls[0], 0, 0, 400, 0);
+    const colours = new Set<number>();
+    for (let tick = 0; tick < 120 * 3; tick++) {
+      stepWorld(world);
+      colours.add(ball.tint);
+    }
+    expect(colours.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it('light barely falls, heavy falls faster than plain', () => {
+    const { world, arena, balls } = ballWorld(['ball:light', 'ball:basic', 'ball:heavy']);
+    arena.balls.forEach((ball, index) => place(ball, -60 + index * 60, -100, 0, 0));
+    for (let tick = 0; tick < 30; tick++) stepWorld(world);
+    const [light, plain, heavy] = balls.map((ball) => ball.vy);
+    expect(light ?? 0).toBeLessThan((plain ?? 0) / 3);
+    expect(heavy ?? 0).toBeGreaterThan(plain ?? 0);
+  });
 });

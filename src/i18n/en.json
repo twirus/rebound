@@ -274,5 +274,12 @@
   "ball.void.name": "Void",
   "ball.void.description": "Its touch clears freezing, heat and colour off other balls. Downside: earns nothing itself.",
   "node.void-ball.name": "Void ball",
-  "node.void-ball.description": "Unlocks the Void ball. Its touch clears freezing, heat and colour off other balls. Downside: earns nothing itself."
+  "node.void-ball.description": "Unlocks the Void ball. Its touch clears freezing, heat and colour off other balls. Downside: earns nothing itself.",
+  "workshop.title": "Workshop",
+  "workshop.subtitle": "sandbox: build an arena from what you have unlocked and watch; earns nothing",
+  "workshop.hints": "tap — push, no cooldown · Esc — close",
+  "workshop.ballCount": "Balls",
+  "workshop.gravity": "Gravity",
+  "workshop.size": "Arena size",
+  "workshop.bounce": "Bounce speed"
 }

@@ -231,3 +231,78 @@ button:focus-visible {
     border-top: 1px solid var(--line);
   }
 }
+
+.workshop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.workshop-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.workshop-body .arena-view {
+  min-width: 0;
+}
+
+.workshop-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.workshop-chip {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--size-sm);
+  cursor: pointer;
+}
+
+.workshop-chip.selected {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--panel-raised);
+}
+
+.workshop-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.workshop-slider-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--size-sm);
+}
+
+.workshop-slider input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .workshop-body {
+    flex-direction: column;
+  }
+
+  .workshop-body .arena-panel {
+    width: auto;
+    max-height: 45%;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}

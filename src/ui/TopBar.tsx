@@ -3,7 +3,7 @@ import { resourceAmounts } from '../game/store';
 import { t } from '../i18n';
 import { ResourceList } from './ResourceList';
 import { soundEnabled } from './settings';
-import { treeOpen } from './uiState';
+import { treeOpen, workshopOpen } from './uiState';
 
 export function TopBar() {
   return (
@@ -18,6 +18,9 @@ export function TopBar() {
         onClick={() => (soundEnabled.value = !soundEnabled.value)}
       >
         {t(soundEnabled.value ? 'hud.soundOn' : 'hud.soundOff')}
+      </button>
+      <button class="text-button" type="button" onClick={() => (workshopOpen.value = true)}>
+        {t('workshop.title')}
       </button>
       <button class="text-button accent" type="button" onClick={() => (treeOpen.value = true)}>
         {t('hud.tree')}

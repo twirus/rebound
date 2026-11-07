@@ -69,3 +69,7 @@ export const INCOME_WINDOW_SECONDS = 5;
 export function nodePrice(cost: NodeCost, level: number): number {
   return Math.ceil(cost.base * cost.growth ** level);
 }
+
+/** A tap in the Workshop: no cooldown, a fixed strength and reach. */
+export const TAP_SANDBOX_STRENGTH = 600;
+export const TAP_SANDBOX_REACH = 0.55;

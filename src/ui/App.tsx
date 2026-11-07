@@ -4,13 +4,17 @@ import { ArenaView } from './ArenaView';
 import { BottomBar } from './BottomBar';
 import { TopBar } from './TopBar';
 import { TreeOverlay } from './tree/TreeOverlay';
-import { treeOpen } from './uiState';
+import { treeOpen, workshopOpen } from './uiState';
+import { WorkshopOverlay } from './workshop/WorkshopOverlay';
 
 function onKeyDown(event: KeyboardEvent): void {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
   if (event.target instanceof HTMLInputElement) return;
   if (event.code === 'KeyT') treeOpen.value = !treeOpen.value;
-  else if (event.code === 'Escape') treeOpen.value = false;
+  else if (event.code === 'Escape') {
+    treeOpen.value = false;
+    workshopOpen.value = false;
+  }
 }
 
 export function App() {
@@ -27,6 +31,7 @@ export function App() {
         <ArenaPanel />
       </div>
       <BottomBar />
+      {workshopOpen.value && <WorkshopOverlay />}
       {treeOpen.value && <TreeOverlay />}
     </div>
   );
