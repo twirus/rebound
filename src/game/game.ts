@@ -200,7 +200,7 @@ export class Game {
   }
 
   private collectIncome(): void {
-    this.earnings.collect(this.world.events, this.stats);
+    this.earnings.collect(this.world.events, this.stats, this.mainArena().schemes);
     const amounts = this.earnings.amounts;
     amounts[MASS] = (amounts[MASS] ?? 0) + this.overflowMass();
     for (const resource of resources) this.earn(resource.id, amounts[resource.id] ?? 0);

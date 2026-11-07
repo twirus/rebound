@@ -3,6 +3,7 @@ import { shapes } from '../content/shapes';
 import type { BallId, ShapeDef, ShapeId } from '../content/types';
 import { applyBallType, clearBallState, newBall, type Ball } from './ball';
 import { SimEventBuffer } from './events';
+import type { PendingEffect } from './gems/firing';
 import type { Scheme } from './gems/scheme';
 import type { PushInput } from './push';
 import { createShapeState, shapeSpawnRadius, type ShapeState } from './shapes';
@@ -21,6 +22,8 @@ export interface Arena {
   quietTicks: number;
   /** Gem schemes running in this arena, in slot order. */
   schemes: Scheme[];
+  /** Effects waiting to land: delayed, echoes, chain jumps. */
+  pendingEffects: PendingEffect[];
   shape: ShapeState;
   balls: Ball[];
 }
@@ -59,6 +62,7 @@ export function createWorld(seed: number): World {
     gravityDirection: 0,
     quietTicks: 0,
     schemes: [],
+    pendingEffects: [],
     shape: createShapeState(shape, shape.radius),
     balls: [],
   };

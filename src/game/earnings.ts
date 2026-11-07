@@ -42,14 +42,21 @@ const IMPULSE: ResourceId = 'resource:impulse';
 export class TickEarnings {
   readonly amounts: ResourceTable = emptyResources();
 
-  collect(events: SimEventBuffer, stats: Stats): void {
+  /** `schemeRewards` scales what each arena scheme caused (greed doubles its own). */
+  collect(
+    events: SimEventBuffer,
+    stats: Stats,
+    schemeRewards: readonly { rewardScale: number }[] = [],
+  ): void {
     for (const resource of resources) this.amounts[resource.id] = 0;
     for (let index = 0; index < events.count; index++) {
       const event = events.at(index);
       const reward = REWARDS[event.kind];
       if (!reward) continue;
       const byType = event.ballType ? (REWARD_SCALE.get(event.ballType) ?? 1) : 1;
-      const amount = stats[reward.stat] * (reward.scaledByStrength ? event.strength : 1) * byType;
+      const byScheme = schemeRewards[event.scheme]?.rewardScale ?? 1;
+      const amount =
+        stats[reward.stat] * (reward.scaledByStrength ? event.strength : 1) * byType * byScheme;
       this.amounts[reward.resource] = (this.amounts[reward.resource] ?? 0) + amount;
     }
     this.amounts[IMPULSE] = (this.amounts[IMPULSE] ?? 0) * stats['stat:impulse-multiplier'];

@@ -43,7 +43,7 @@ function GemOption({ slot, gem }: { slot: GemSlotRef; gem: GemDef }) {
         </span>
       </span>
       <span class="gem-option-note">{t(gem.descriptionKey)}</span>
-      {gem.kind === 'support' && (
+      {(gem.kind === 'support' || gem.kind === 'condition') && (
         <span class="gem-option-note warn-text">{t(gem.downsideKey)}</span>
       )}
     </button>

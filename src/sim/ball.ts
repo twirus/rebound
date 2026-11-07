@@ -59,6 +59,8 @@ export interface Ball {
   /** Already reported as nearly stopped / at top speed; cleared once it recovers. */
   slow: boolean;
   fast: boolean;
+  /** Firings of fragile schemes this ball has taken. */
+  wear: number;
 }
 
 export function findBall(id: BallId): BallDef {
@@ -113,6 +115,7 @@ export function newBall(id: number, typeId: BallId, sizeScale: number): Ball {
     storedVy: 0,
     slow: false,
     fast: false,
+    wear: 0,
   };
   applyBallType(ball, typeId, sizeScale);
   return ball;
