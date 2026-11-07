@@ -9,9 +9,13 @@ function drawCircle(context: CanvasRenderingContext2D, radius: number): void {
   context.stroke();
 }
 
+/** Rings are drawn a little bolder so the packed rings read as a solid maze. */
+const RING_WIDTH_FACTOR = 1.4;
+
 /** Each whole ring is an arc from one edge of its gap round to the other. */
 function drawRings(context: CanvasRenderingContext2D, state: RingsState): void {
   const halfGap = Math.acos(state.gapCos);
+  context.lineWidth *= RING_WIDTH_FACTOR;
   for (const ring of state.rings) {
     if (ring.broken) continue;
     const gapAngle = Math.atan2(ring.gapY, ring.gapX);

@@ -1,5 +1,6 @@
-import type { Arena, World } from '../sim/world';
+import type { Arena, Ball, World } from '../sim/world';
 import { findBall } from '../sim/world';
+import { BallTrails } from './ballTrails';
 import { PushRings } from './pushRings';
 import { drawShapeWalls } from './shapeWalls';
 import { ShardBursts } from './shardBursts';
@@ -30,6 +31,10 @@ export class ArenaRenderer {
   private readonly colors: ThemeColors;
   private readonly pushRings = new PushRings();
   private readonly shardBursts = new ShardBursts();
+  private readonly trails = new BallTrails();
+  /** Interpolated ball positions of the current frame, (x, y) pairs; grows as needed. */
+  private positions = new Float64Array(64);
+  private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   private cssWidth = 0;
   private cssHeight = 0;
 
@@ -70,6 +75,16 @@ export class ArenaRenderer {
     if (arena) this.drawArena(arena, alpha);
   }
 
+  /** Positions between the last two ticks, so motion is smooth at any frame rate. */
+  private interpolate(balls: readonly Ball[], alpha: number): void {
+    if (this.positions.length < balls.length * 2)
+      this.positions = new Float64Array(balls.length * 4);
+    balls.forEach((ball, index) => {
+      this.positions[index * 2] = ball.prevX + (ball.x - ball.prevX) * alpha;
+      this.positions[index * 2 + 1] = ball.prevY + (ball.y - ball.prevY) * alpha;
+    });
+  }
+
   private scaleFor(arena: Arena | undefined): number {
     if (!arena) return 1;
     return (Math.min(this.cssWidth, this.cssHeight) * ARENA_FILL) / (arena.radius * 2);
@@ -88,15 +103,24 @@ export class ArenaRenderer {
     drawShapeWalls(context, arena);
     context.globalAlpha = 1;
 
-    for (const ball of arena.balls) {
-      const x = ball.prevX + (ball.x - ball.prevX) * alpha;
-      const y = ball.prevY + (ball.y - ball.prevY) * alpha;
+    const now = performance.now();
+    this.interpolate(arena.balls, alpha);
+    if (!this.reducedMotion.matches) {
+      this.trails.record(arena.balls, this.positions, now);
+      this.trails.draw(context, arena.balls, now);
+    }
+    arena.balls.forEach((ball, index) => {
       context.fillStyle = findBall(ball.typeId).color;
       context.beginPath();
-      context.arc(x, y, ball.radius, 0, FULL_TURN);
+      context.arc(
+        this.positions[index * 2] ?? 0,
+        this.positions[index * 2 + 1] ?? 0,
+        ball.radius,
+        0,
+        FULL_TURN,
+      );
       context.fill();
-    }
-    const now = performance.now();
+    });
     this.shardBursts.draw(context, this.colors.wall, scale, now);
     this.pushRings.draw(context, this.colors.wall, scale, now);
     context.restore();

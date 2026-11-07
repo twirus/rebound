@@ -5,7 +5,7 @@ import { stepWorld } from '../../src/sim/step';
 import { findShape, setArenaShape, type Arena, type World } from '../../src/sim/world';
 import { worldWithBalls } from './helpers';
 
-const RADIUS = 359;
+const RADIUS = 227;
 
 function ringsWorld(): { world: World; arena: Arena; state: RingsState; innerRadius: number } {
   const { world, arena } = worldWithBalls(3, 1);
@@ -35,9 +35,9 @@ function countEvents(world: World, ticks: number, kind: SimEventKind): number {
 describe('rings', () => {
   it('builds the configured number of rings, innermost first', () => {
     const { state, innerRadius } = ringsWorld();
-    expect(state.rings).toHaveLength(30);
-    expect(innerRadius).toBeCloseTo(40);
-    expect(state.rings[29]?.radius).toBeCloseTo(RADIUS);
+    expect(state.rings).toHaveLength(14);
+    expect(innerRadius).toBeCloseTo(32);
+    expect(state.rings[13]?.radius).toBeCloseTo(RADIUS);
   });
 
   it('breaks a ring when a ball flies through its gap', () => {
