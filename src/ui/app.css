@@ -306,3 +306,108 @@ button:focus-visible {
     border-top: 1px solid var(--line);
   }
 }
+
+.schemes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.load-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.load-track {
+  height: 2px;
+  background: var(--line);
+}
+
+.load-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.scheme-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.scheme-rate {
+  margin-left: auto;
+  font-size: var(--size-xs);
+}
+
+.gem-slot {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--size-sm);
+  cursor: pointer;
+}
+
+.gem-slot.empty {
+  border-style: dashed;
+  color: var(--text-mute);
+}
+
+.gem-slot.open {
+  border-color: var(--accent);
+}
+
+.gem-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.gem-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gem-option:hover {
+  border-color: var(--accent);
+}
+
+.gem-option-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--size-sm);
+}
+
+.gem-option-note {
+  color: var(--text-dim);
+  font-size: var(--size-xs);
+  line-height: 1.35;
+}
+
+.gem-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

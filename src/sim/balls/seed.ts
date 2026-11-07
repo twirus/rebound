@@ -1,6 +1,6 @@
 import { detCos, detSin } from '../../core/detMath';
 import { TICK_SECONDS } from '../constants';
-import { spawnClone } from '../world';
+import { spawnClone } from '../clones';
 import type { BallBehavior } from './behavior';
 
 /** Hatchlings fly off this far apart (radians), fanned around the direction of the seed. */

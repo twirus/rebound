@@ -21,7 +21,7 @@ export const mechanismNodes: readonly TreeNodeDef[] = [
     requires: ['node:hit-value'],
     unlocks: ['gem:on-wall-hit', 'gem:blast'],
     maxLevel: 1,
-    costs: [{ resource: IMPULSE, base: 3000, growth: 1 }],
+    costs: [{ resource: IMPULSE, base: 12000, growth: 1 }],
     effects: [{ stat: 'stat:scheme-slots', add: 1 }],
   },
   {

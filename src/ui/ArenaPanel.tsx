@@ -5,6 +5,7 @@ import { chooseBall, chooseShape } from '../game/session';
 import { arenaSetup, currentStats, nodeLevels } from '../game/store';
 import { unlockedBalls, unlockedShapes } from '../game/unlocks';
 import { t } from '../i18n';
+import { SchemesSection } from './arena/SchemesSection';
 
 interface OptionProps {
   name: string;
@@ -86,6 +87,7 @@ export function ArenaPanel() {
           <span class="caption mute">{t('arena.overflow', { count: String(overflow) })}</span>
         )}
       </div>
+      <SchemesSection />
       <span class="caption dim">{t('arena.shape')}</span>
       <ShapeOptions />
       <span class="caption dim">{t('arena.ball')}</span>

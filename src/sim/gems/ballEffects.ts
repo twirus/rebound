@@ -4,7 +4,7 @@ import { startStatus } from '../balls/status';
 import { TICK_SECONDS } from '../constants';
 import { shapeSpawnRadius } from '../shapes';
 import { respawnNearCentre } from '../shapes/walls';
-import { spawnClone } from '../world';
+import { spawnClone } from '../clones';
 import { targetBall, type EffectHandler } from './target';
 
 /** A split copy flies off this far (radians) from the original's direction. */

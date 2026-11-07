@@ -16,6 +16,8 @@ export const incomePerSecond = signal<ResourceTable>(emptyResources());
 export const nodeLevels = signal<NodeLevels>({});
 export const currentStats = signal<Stats>(computeStats({}));
 export const tapCooldownLeft = signal(0);
+/** Firings per minute of each running scheme, in slot order. */
+export const schemeRates = signal<number[]>([]);
 export const arenaSetup = signal<ArenaSetup>({ ...DEFAULT_ARENA, schemes: [] });
 
 /** Resources worth showing: produced by an unlocked shape or already owned. */
@@ -27,6 +29,7 @@ export function publish(game: Game): void {
   resourceAmounts.value = { ...game.state.resources };
   incomePerSecond.value = game.income.perSecond();
   tapCooldownLeft.value = game.tapCooldownLeft();
+  schemeRates.value = game.schemeRates.perMinute();
 }
 
 export function publishPurchases(game: Game): void {

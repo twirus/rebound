@@ -3,13 +3,13 @@ import type { BallId, GemId, NodeId, ResourceId, ShapeId } from '../content/type
 import { TICK_SECONDS } from '../sim/constants';
 import { queuePush, type PushInput } from '../sim/push';
 import { applyBallType, clearBallState } from '../sim/ball';
+import { permanentBallCount } from '../sim/clones';
 import { setArenaSchemes } from '../sim/gems';
 import { stepWorld } from '../sim/step';
 import {
   createWorld,
   ballSizeScale,
   findShape,
-  permanentBallCount,
   setArenaShape,
   spawnBall,
   type Arena,
@@ -22,6 +22,7 @@ import {
   TAP_ECHO_STRENGTH,
 } from './balance';
 import { TickEarnings } from './earnings';
+import { SchemeRates } from './schemeRates';
 import {
   clearSlot,
   placeGem,
@@ -49,6 +50,7 @@ interface ScheduledPush {
 export class Game {
   readonly world: World;
   readonly income = new IncomeTracker();
+  readonly schemeRates = new SchemeRates();
   private stats: Stats;
   private lastTapTick = Number.NEGATIVE_INFINITY;
   private nextAutoTapTick = 0;
@@ -85,6 +87,7 @@ export class Game {
     this.runAutoTap();
     this.runEcho();
     this.income.endTick();
+    this.schemeRates.record(this.world.tick, this.mainArena().schemes);
   }
 
   /** Seconds until the tap is ready again; 0 when ready. */

@@ -6,7 +6,8 @@ import { isStill } from './balls/status';
 import { runSchemes } from './gems/runner';
 import { detectTriggers } from './triggers';
 import { collideShape, stepShape, type ShapeContext } from './shapes';
-import { expireClones, type Arena, type Ball, type World } from './world';
+import { expireClones } from './clones';
+import type { Arena, Ball, World } from './world';
 
 /*
  * Only + - * / and Math.sqrt are used in sim/ (trigonometry comes from

@@ -1,6 +1,6 @@
 import { detCos, detSin } from '../../core/detMath';
 import { TICK_SECONDS } from '../constants';
-import { spawnClone } from '../world';
+import { spawnClone } from '../clones';
 import type { ShapeBehavior } from './behavior';
 import { collideSide, createPolygon, type Polygon, type SideContact } from './polygon';
 
