@@ -11,4 +11,8 @@ export const stats: readonly StatDef[] = [
   { id: 'stat:tap-cooldown', nameKey: 'stat.tap-cooldown.name' },
   { id: 'stat:auto-tap', nameKey: 'stat.auto-tap.name' },
   { id: 'stat:auto-tap-interval', nameKey: 'stat.auto-tap-interval.name' },
+  { id: 'stat:auto-tap-power', nameKey: 'stat.auto-tap-power.name' },
+  { id: 'stat:tap-reach', nameKey: 'stat.tap-reach.name' },
+  { id: 'stat:tap-echo', nameKey: 'stat.tap-echo.name' },
+  { id: 'stat:impulse-multiplier', nameKey: 'stat.impulse-multiplier.name' },
 ];

@@ -7,6 +7,7 @@ import { treeOpen } from './uiState';
 
 function onKeyDown(event: KeyboardEvent): void {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.target instanceof HTMLInputElement) return;
   if (event.code === 'KeyT') treeOpen.value = !treeOpen.value;
   else if (event.code === 'Escape') treeOpen.value = false;
 }

@@ -1,9 +1,14 @@
 import type { NodeId } from '../content/types';
 import { TICK_SECONDS } from '../sim/constants';
-import { queuePush } from '../sim/push';
+import { queuePush, type PushInput } from '../sim/push';
 import { stepWorld } from '../sim/step';
 import { createWorld, findShape, spawnBall, type Arena, type World } from '../sim/world';
-import { AUTO_TAP_DEPTH, AUTO_TAP_REACH, TAP_REACH } from './balance';
+import {
+  AUTO_TAP_DEPTH,
+  AUTO_TAP_REACH,
+  TAP_ECHO_DELAY_SECONDS,
+  TAP_ECHO_STRENGTH,
+} from './balance';
 import { IncomeTracker } from './incomeTracker';
 import { buyLevel } from './purchases';
 import type { GameState } from './state';
@@ -12,6 +17,11 @@ import { computeStats, type Stats } from './stats';
 const IMPULSE = 'resource:impulse';
 const MAIN_ARENA = 0;
 
+interface ScheduledPush {
+  tick: number;
+  push: PushInput;
+}
+
 /** Owns the world and the saved state; the only place where resources change. */
 export class Game {
   readonly world: World;
@@ -19,6 +29,7 @@ export class Game {
   private stats: Stats;
   private lastTapTick = Number.NEGATIVE_INFINITY;
   private nextAutoTapTick = 0;
+  private echo: ScheduledPush | null = null;
 
   constructor(
     readonly state: GameState,
@@ -37,6 +48,7 @@ export class Game {
     stepWorld(this.world);
     this.collectIncome();
     this.runAutoTap();
+    this.runEcho();
     this.income.endTick();
   }
 
@@ -50,13 +62,20 @@ export class Game {
   tap(x: number, y: number): boolean {
     if (this.tapCooldownLeft() > 0) return false;
     const arena = this.mainArena();
-    queuePush(this.world, {
+    const push: PushInput = {
       arenaIndex: MAIN_ARENA,
       x,
       y,
       strength: this.stats['stat:tap-strength'],
-      reach: arena.radius * TAP_REACH,
-    });
+      reach: arena.radius * this.stats['stat:tap-reach'],
+    };
+    queuePush(this.world, push);
+    if (this.stats['stat:tap-echo'] >= 1) {
+      this.echo = {
+        tick: this.world.tick + Math.round(TAP_ECHO_DELAY_SECONDS / TICK_SECONDS),
+        push: { ...push, strength: push.strength * TAP_ECHO_STRENGTH },
+      };
+    }
     this.lastTapTick = this.world.tick;
     return true;
   }
@@ -92,6 +111,7 @@ export class Game {
       else if (event.kind === 'ball-collision') earned += this.stats['stat:impulse-per-collision'];
     }
     if (earned === 0) return;
+    earned *= this.stats['stat:impulse-multiplier'];
     this.state.resources[IMPULSE] = (this.state.resources[IMPULSE] ?? 0) + earned;
     this.income.add(IMPULSE, earned);
   }
@@ -103,10 +123,16 @@ export class Game {
       arenaIndex: MAIN_ARENA,
       x: 0,
       y: arena.radius * AUTO_TAP_DEPTH,
-      strength: this.stats['stat:tap-strength'],
+      strength: this.stats['stat:tap-strength'] * this.stats['stat:auto-tap-power'],
       reach: arena.radius * AUTO_TAP_REACH,
     });
     this.nextAutoTapTick =
       this.world.tick + Math.round(this.stats['stat:auto-tap-interval'] / TICK_SECONDS);
+  }
+
+  private runEcho(): void {
+    if (!this.echo || this.world.tick < this.echo.tick) return;
+    queuePush(this.world, this.echo.push);
+    this.echo = null;
   }
 }

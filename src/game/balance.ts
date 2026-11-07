@@ -12,6 +12,11 @@ export const BASE_STATS: Readonly<Record<StatId, number>> = {
   'stat:tap-cooldown': 2,
   'stat:auto-tap': 0,
   'stat:auto-tap-interval': 10,
+  'stat:auto-tap-power': 1,
+  /** Tap push fades to zero at this share of the arena radius. */
+  'stat:tap-reach': 0.55,
+  'stat:tap-echo': 0,
+  'stat:impulse-multiplier': 1,
 };
 
 /** A node raising the key stat cannot be bought past the value of the mapped stat. */
@@ -19,8 +24,9 @@ export const STAT_CAPS: Readonly<Partial<Record<StatId, StatId>>> = {
   'stat:ball-count': 'stat:ball-limit',
 };
 
-/** Tap push fades to zero at this share of the arena radius. */
-export const TAP_REACH = 0.55;
+/** The echo of a tap comes this much later and this much weaker. */
+export const TAP_ECHO_DELAY_SECONDS = 0.25;
+export const TAP_ECHO_STRENGTH = 0.6;
 /** Auto-push comes from the bottom of the arena and reaches this share of the radius. */
 export const AUTO_TAP_REACH = 0.8;
 /** Auto-push origin below the centre, as a share of the radius. */

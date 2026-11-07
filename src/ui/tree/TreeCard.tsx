@@ -1,27 +1,27 @@
 import { branches } from '../../content/branches';
+import { buyNode } from '../../game/session';
 import { t } from '../../i18n';
+import { selectedNode } from '../uiState';
 import type { Placement } from './layout';
-import type { NodeView } from './nodeView';
+import { NodeIcon } from './NodeIcon';
+import { isDimmedBySearch, viewNode, visibleName, type NodeView } from './nodeView';
 import { PriceList } from './PriceList';
 
-interface TreeCardProps {
-  placement: Placement;
-  view: NodeView;
-  selected: boolean;
-  onSelect: () => void;
-  onBuy: () => void;
+function levelText(view: NodeView): string {
+  return t('tree.level', { level: String(view.level), max: String(view.node.maxLevel) });
 }
 
 function CardFooter({ view }: { view: NodeView }) {
-  const { status, level, node } = view;
-  const levelText = t('tree.level', { level: String(level), max: String(node.maxLevel) });
+  const { status, node } = view;
   if (status === 'hidden') return <span />;
   if (status === 'locked') return <span class="caption mute">{t('tree.status.locked')}</span>;
   if (status === 'maxed') {
     return (
       <>
         <span class="caption accent">{t('tree.status.maxed')}</span>
-        <span class="caption accent">{levelText}</span>
+        <span class="caption accent">
+          {node.maxLevel === 1 ? t('tree.status.opened') : levelText(view)}
+        </span>
       </>
     );
   }
@@ -32,31 +32,46 @@ function CardFooter({ view }: { view: NodeView }) {
       ) : (
         <PriceList prices={view.prices} affordable={view.affordable} />
       )}
-      <span class="caption dim">{levelText}</span>
+      <span class="caption dim">{levelText(view)}</span>
     </>
   );
 }
 
-export function TreeCard({ placement, view, selected, onSelect, onBuy }: TreeCardProps) {
-  const branch = branches.find((candidate) => candidate.id === view.node.branch);
-  const hidden = view.status === 'hidden';
-  const classes = [
-    'tree-card',
+/** Classes shared by cards and group rows: status colours, selection and search dimming. */
+export function stateClasses(view: NodeView): string {
+  return [
     `status-${view.status}`,
     view.level > 0 ? 'owned' : '',
     view.affordable ? 'affordable' : '',
-    selected ? 'selected' : '',
+    selectedNode.value === view.node.id ? 'selected' : '',
+    isDimmedBySearch(view.node.id) ? 'search-dimmed' : '',
   ].join(' ');
+}
+
+export function TreeCard({ placement }: { placement: Placement }) {
+  const node = placement.nodes[0];
+  if (!node) return null;
+  const view = viewNode(node);
+  const branch = branches.find((candidate) => candidate.id === node.branch);
+  const hidden = view.status === 'hidden';
   return (
     <button
       type="button"
-      class={classes}
+      class={`tree-card kind-${node.kind} ${stateClasses(view)}`}
       style={{ left: `${placement.x}px`, top: `${placement.y}px` }}
-      onClick={onSelect}
-      onDblClick={onBuy}
+      onClick={() => (selectedNode.value = node.id)}
+      onDblClick={() => buyNode(node.id)}
     >
-      <span class="caption accent">{branch && !hidden ? t(branch.nameKey) : ''}</span>
-      <span class="tree-card-name">{hidden ? t('tree.hiddenName') : t(view.node.nameKey)}</span>
+      <span class="tree-card-icon">
+        <NodeIcon icon={node.icon} size={28} />
+      </span>
+      <span class="tree-card-text">
+        <span class="caption accent">
+          {branch && !hidden ? t(branch.nameKey) : ''}
+          {node.kind === 'key' && !hidden ? ` · ${t('tree.kind.key')}` : ''}
+        </span>
+        <span class="tree-card-name">{visibleName(view)}</span>
+      </span>
       <span class="tree-card-footer" key={view.level}>
         <CardFooter view={view} />
       </span>

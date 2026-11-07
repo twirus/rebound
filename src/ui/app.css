@@ -132,8 +132,16 @@ button:focus-visible {
   cursor: crosshair;
 }
 
+.show-narrow {
+  display: none;
+}
+
 @media (max-width: 560px) {
   .hide-narrow {
     display: none;
+  }
+
+  .show-narrow {
+    display: inline;
   }
 }

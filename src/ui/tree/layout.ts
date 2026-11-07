@@ -1,133 +1,203 @@
-import type { BranchId, NodeId, TreeNodeDef } from '../../content/types';
+import type { BranchId, GroupId, NodeId, TreeGroupDef, TreeNodeDef } from '../../content/types';
 
-export const CARD_WIDTH = 232;
+export const CARD_WIDTH = 240;
 export const CARD_HEIGHT = 92;
+export const GROUP_HEADER_HEIGHT = 34;
+export const GROUP_ROW_HEIGHT = 40;
 export const COLUMN_GAP = 64;
 export const ROW_GAP = 16;
 /** Vertical gap between branch bands. */
-export const BAND_GAP = 40;
+export const BAND_GAP = 48;
+export const COLUMN_WIDTH = CARD_WIDTH + COLUMN_GAP;
 
+/** One box in the tree: a single card or a group of upgrade rows. */
 export interface Placement {
-  node: TreeNodeDef;
+  id: NodeId | GroupId;
+  branch: BranchId;
+  group: TreeGroupDef | null;
+  nodes: readonly TreeNodeDef[];
   column: number;
-  row: number;
   x: number;
   y: number;
+  height: number;
+}
+
+export interface NodeLink {
+  source: NodeId;
+  target: NodeId;
 }
 
 export interface Edge {
-  from: NodeId;
-  to: NodeId;
+  from: Placement['id'];
+  to: Placement['id'];
+  /** Requirement pairs behind the link; it lights up once both ends of a pair are bought. */
+  links: readonly NodeLink[];
   path: string;
+}
+
+export interface Band {
+  branch: BranchId;
+  top: number;
+  height: number;
+  left: number;
 }
 
 export interface TreeLayout {
   placements: Placement[];
   edges: Edge[];
+  bands: Band[];
   columns: number;
   width: number;
   height: number;
 }
 
-/** Step of a node = length of the longest dependency chain from a root. */
-function computeSteps(nodes: readonly TreeNodeDef[]): Map<NodeId, number> {
-  const byId = new Map(nodes.map((node) => [node.id, node]));
-  const steps = new Map<NodeId, number>();
-  const stepOf = (node: TreeNodeDef): number => {
-    const known = steps.get(node.id);
-    if (known !== undefined) return known;
-    let step = 0;
-    for (const id of node.requires) {
-      const parent = byId.get(id);
-      if (parent) step = Math.max(step, stepOf(parent) + 1);
+interface Box {
+  id: Placement['id'];
+  branch: BranchId;
+  group: TreeGroupDef | null;
+  nodes: TreeNodeDef[];
+  /** Ids of boxes this box depends on, plus the node pairs behind each link. */
+  parents: Map<Placement['id'], NodeLink[]>;
+  height: number;
+}
+
+function buildBoxes(nodes: readonly TreeNodeDef[], groups: readonly TreeGroupDef[]): Box[] {
+  const boxes = new Map<Placement['id'], Box>();
+  const boxOf = new Map<NodeId, Placement['id']>();
+  for (const node of nodes) {
+    const group = node.group
+      ? (groups.find((candidate) => candidate.id === node.group) ?? null)
+      : null;
+    const id = group ? group.id : node.id;
+    boxOf.set(node.id, id);
+    const box: Box = boxes.get(id) ?? {
+      id,
+      branch: node.branch,
+      group,
+      nodes: [],
+      parents: new Map(),
+      height: 0,
+    };
+    box.nodes.push(node);
+    boxes.set(id, box);
+  }
+  for (const box of boxes.values()) {
+    box.height = box.group
+      ? GROUP_HEADER_HEIGHT + box.nodes.length * GROUP_ROW_HEIGHT
+      : CARD_HEIGHT;
+    for (const node of box.nodes) {
+      for (const required of node.requires) {
+        const parent = boxOf.get(required);
+        if (!parent || parent === box.id) continue;
+        const link = { source: required, target: node.id };
+        box.parents.set(parent, [...(box.parents.get(parent) ?? []), link]);
+      }
     }
-    steps.set(node.id, step);
-    return step;
+  }
+  return [...boxes.values()];
+}
+
+/** Column of a box = length of the longest dependency chain from a root. */
+function computeColumns(boxes: readonly Box[]): Map<Placement['id'], number> {
+  const byId = new Map(boxes.map((box) => [box.id, box]));
+  const columns = new Map<Placement['id'], number>();
+  const columnOf = (box: Box): number => {
+    const known = columns.get(box.id);
+    if (known !== undefined) return known;
+    let column = 0;
+    for (const parentId of box.parents.keys()) {
+      const parent = byId.get(parentId);
+      if (parent) column = Math.max(column, columnOf(parent) + 1);
+    }
+    columns.set(box.id, column);
+    return column;
   };
-  nodes.forEach(stepOf);
-  return steps;
+  boxes.forEach(columnOf);
+  return columns;
 }
 
 /**
- * Rows inside one branch band: each column is ordered by the average row of
- * its parents (barycentre) so links cross less, then pushed down to avoid overlap.
+ * Vertical places inside one band: each column is ordered by the average centre
+ * of its parents (barycentre) so links cross less, then pushed down to avoid overlap.
  */
-function assignRows(
-  nodes: readonly TreeNodeDef[],
-  steps: Map<NodeId, number>,
-): Map<NodeId, number> {
-  const rows = new Map<NodeId, number>();
-  const columnCount = Math.max(0, ...nodes.map((node) => steps.get(node.id) ?? 0)) + 1;
-  for (let column = 0; column < columnCount; column++) {
-    const inColumn = nodes
-      .filter((node) => steps.get(node.id) === column)
-      .map((node, order) => {
-        const parentRows = node.requires
-          .map((id) => rows.get(id))
-          .filter((row) => row !== undefined);
-        const barycentre = parentRows.length
-          ? parentRows.reduce((sum, row) => sum + row, 0) / parentRows.length
-          : order;
-        return { node, barycentre, order };
+function placeBand(
+  boxes: readonly Box[],
+  columns: Map<Placement['id'], number>,
+  centres: Map<Placement['id'], number>,
+  top: number,
+): Placement[] {
+  const placements: Placement[] = [];
+  const lastColumn = Math.max(...boxes.map((box) => columns.get(box.id) ?? 0));
+  for (let column = 0; column <= lastColumn; column++) {
+    const ordered = boxes
+      .filter((box) => columns.get(box.id) === column)
+      .map((box, order) => {
+        const parentCentres = [...box.parents.keys()]
+          .map((id) => centres.get(id))
+          .filter((centre) => centre !== undefined);
+        const wanted = parentCentres.length
+          ? parentCentres.reduce((sum, centre) => sum + centre, 0) / parentCentres.length
+          : top;
+        return { box, wanted, order };
       })
-      .sort((first, second) => first.barycentre - second.barycentre || first.order - second.order);
-    let nextFree = 0;
-    for (const entry of inColumn) {
-      const row = Math.max(nextFree, Math.round(entry.barycentre));
-      rows.set(entry.node.id, row);
-      nextFree = row + 1;
+      .sort((first, second) => first.wanted - second.wanted || first.order - second.order);
+    let nextFree = top;
+    for (const { box, wanted } of ordered) {
+      const y = Math.max(nextFree, wanted - CARD_HEIGHT / 2);
+      centres.set(box.id, y + CARD_HEIGHT / 2);
+      const { id, branch, group, nodes, height } = box;
+      placements.push({ id, branch, group, nodes, column, x: column * COLUMN_WIDTH, y, height });
+      nextFree = y + height + ROW_GAP;
     }
   }
-  return rows;
+  return placements;
 }
 
+/** Links leave the parent's right side and enter at the child's first-card height. */
 function edgePath(from: Placement, to: Placement): string {
-  const startX = from.x + CARD_WIDTH;
   const startY = from.y + CARD_HEIGHT / 2;
   const endY = to.y + CARD_HEIGHT / 2;
   const bendX = to.x - COLUMN_GAP / 2;
-  return `M ${startX} ${startY} H ${bendX} V ${endY} H ${to.x}`;
+  return `M ${from.x + CARD_WIDTH} ${startY} H ${bendX} V ${endY} H ${to.x}`;
 }
 
 export function layoutTree(
   nodes: readonly TreeNodeDef[],
+  groups: readonly TreeGroupDef[],
   branchOrder: readonly BranchId[],
 ): TreeLayout {
-  const steps = computeSteps(nodes);
+  const boxes = buildBoxes(nodes, groups);
+  const columns = computeColumns(boxes);
+  const centres = new Map<Placement['id'], number>();
   const placements: Placement[] = [];
-  let bandTop = 0;
+  const bands: Band[] = [];
+  let top = 0;
   for (const branch of branchOrder) {
-    const inBranch = nodes.filter((node) => node.branch === branch);
+    const inBranch = boxes.filter((box) => box.branch === branch);
     if (inBranch.length === 0) continue;
-    const rows = assignRows(inBranch, steps);
-    let lastRow = 0;
-    for (const node of inBranch) {
-      const column = steps.get(node.id) ?? 0;
-      const row = rows.get(node.id) ?? 0;
-      lastRow = Math.max(lastRow, row);
-      placements.push({
-        node,
-        column,
-        row,
-        x: column * (CARD_WIDTH + COLUMN_GAP),
-        y: bandTop + row * (CARD_HEIGHT + ROW_GAP),
-      });
-    }
-    bandTop += (lastRow + 1) * (CARD_HEIGHT + ROW_GAP) - ROW_GAP + BAND_GAP;
+    const placed = placeBand(inBranch, columns, centres, top);
+    const bottom = Math.max(...placed.map((placement) => placement.y + placement.height));
+    const left = Math.min(...placed.map((placement) => placement.x));
+    bands.push({ branch, top, height: bottom - top, left });
+    placements.push(...placed);
+    top = bottom + BAND_GAP;
   }
-  const byId = new Map(placements.map((placement) => [placement.node.id, placement]));
-  const edges: Edge[] = placements.flatMap((placement) =>
-    placement.node.requires.flatMap((id) => {
-      const parent = byId.get(id);
-      return parent ? [{ from: id, to: placement.node.id, path: edgePath(parent, placement) }] : [];
-    }),
-  );
-  const columns = Math.max(0, ...placements.map((placement) => placement.column)) + 1;
+  const byId = new Map(placements.map((placement) => [placement.id, placement]));
+  const edges: Edge[] = boxes.flatMap((box) => {
+    const child = byId.get(box.id);
+    if (!child) return [];
+    return [...box.parents].flatMap(([parentId, links]) => {
+      const parent = byId.get(parentId);
+      return parent ? [{ from: parentId, to: box.id, links, path: edgePath(parent, child) }] : [];
+    });
+  });
+  const columnCount = Math.max(0, ...placements.map((placement) => placement.column)) + 1;
   return {
     placements,
     edges,
-    columns,
-    width: columns * (CARD_WIDTH + COLUMN_GAP) - COLUMN_GAP,
-    height: Math.max(0, bandTop - BAND_GAP),
+    bands,
+    columns: columnCount,
+    width: columnCount * COLUMN_WIDTH - COLUMN_GAP,
+    height: Math.max(0, top - BAND_GAP),
   };
 }

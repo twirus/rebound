@@ -1,12 +1,12 @@
 import { treeNodes } from '../content/tree';
-import type { NodeId, ResourceId, TreeNodeDef } from '../content/types';
+import type { NodeCondition, NodeId, ResourceId, TreeNodeDef } from '../content/types';
 import { STAT_CAPS, nodePrice } from './balance';
 import { levelOf, type GameState, type NodeLevels, type ResourceTable } from './state';
 import type { Stats } from './stats';
 
 /**
- * hidden — a requirement is itself still locked (shown as a silhouette);
- * locked — requirements not bought yet; capped — blocked by a limit stat;
+ * hidden — far from reach or content of a later version (shown as a silhouette);
+ * locked — requirements or conditions not met yet; capped — blocked by a limit stat;
  * available — can be bought when affordable; maxed — every level bought.
  */
 export type NodeStatus = 'hidden' | 'locked' | 'capped' | 'available' | 'maxed';
@@ -22,8 +22,42 @@ export function findNode(id: NodeId): TreeNodeDef {
   return node;
 }
 
-export function isUnlocked(node: TreeNodeDef, levels: NodeLevels): boolean {
-  return node.requires.every((id) => levelOf(levels, id) > 0);
+function isBought(id: NodeId, levels: NodeLevels): boolean {
+  return levelOf(levels, id) > 0;
+}
+
+export function requirementsMet(node: TreeNodeDef, levels: NodeLevels): boolean {
+  if (node.requires.length === 0) return true;
+  return node.requiresMode === 'any'
+    ? node.requires.some((id) => isBought(id, levels))
+    : node.requires.every((id) => isBought(id, levels));
+}
+
+/** No requirement can even be bought next: the node is too far to show. */
+function isFarAway(node: TreeNodeDef, levels: NodeLevels): boolean {
+  const reachable = (id: NodeId) => isBought(id, levels) || requirementsMet(findNode(id), levels);
+  return node.requiresMode === 'any'
+    ? !node.requires.some(reachable)
+    : !node.requires.every(reachable);
+}
+
+export function totalLevels(levels: NodeLevels): number {
+  return treeNodes.reduce((sum, node) => sum + levelOf(levels, node.id), 0);
+}
+
+export function conditionMet(condition: NodeCondition, levels: NodeLevels, stats: Stats): boolean {
+  switch (condition.kind) {
+    case 'stat-at-least':
+      return stats[condition.stat] >= condition.value;
+    case 'levels-bought':
+      return totalLevels(levels) >= condition.value;
+    case 'future':
+      return false;
+  }
+}
+
+export function isFuture(node: TreeNodeDef): boolean {
+  return (node.conditions ?? []).some((condition) => condition.kind === 'future');
 }
 
 function isCapped(node: TreeNodeDef, stats: Stats): boolean {
@@ -35,10 +69,10 @@ function isCapped(node: TreeNodeDef, stats: Stats): boolean {
 
 export function nodeStatus(node: TreeNodeDef, levels: NodeLevels, stats: Stats): NodeStatus {
   if (levelOf(levels, node.id) >= node.maxLevel) return 'maxed';
-  if (!isUnlocked(node, levels)) {
-    const farAway = node.requires.some((id) => !isUnlocked(findNode(id), levels));
-    return farAway ? 'hidden' : 'locked';
-  }
+  if (isFuture(node)) return 'hidden';
+  if (!requirementsMet(node, levels)) return isFarAway(node, levels) ? 'hidden' : 'locked';
+  const conditions = node.conditions ?? [];
+  if (!conditions.every((condition) => conditionMet(condition, levels, stats))) return 'locked';
   return isCapped(node, stats) ? 'capped' : 'available';
 }
 
@@ -48,8 +82,12 @@ export function nextPrices(node: TreeNodeDef, levels: NodeLevels): Price[] {
   return node.costs.map((cost) => ({ resource: cost.resource, amount: nodePrice(cost, level) }));
 }
 
+export function hasEnough(resources: ResourceTable, price: Price): boolean {
+  return (resources[price.resource] ?? 0) >= price.amount;
+}
+
 export function canAfford(resources: ResourceTable, prices: readonly Price[]): boolean {
-  return prices.every((price) => (resources[price.resource] ?? 0) >= price.amount);
+  return prices.every((price) => hasEnough(resources, price));
 }
 
 /** Buys one level if possible. Mutates `state`; returns whether anything was bought. */

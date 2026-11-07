@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { treeNodes } from '../../src/content/tree';
 import { BASE_STATS, nodePrice } from '../../src/game/balance';
 import { Game } from '../../src/game/game';
-import { buyLevel, findNode, nodeStatus } from '../../src/game/purchases';
+import { buyLevel, findNode, isFuture, nodeStatus } from '../../src/game/purchases';
 import { newGameState, type GameState } from '../../src/game/state';
 import { computeStats } from '../../src/game/stats';
 
@@ -73,6 +73,31 @@ describe('buying', () => {
     expect(nodeStatus(findNode('node:ball-speed'), {}, stats)).toBe('hidden');
   });
 
+  it('opens an any-of node after one of its requirements', () => {
+    const stats = computeStats({});
+    const echo = findNode('node:tap-echo');
+    expect(nodeStatus(echo, { 'node:tap-strength': 1 }, stats)).toBe('locked');
+    expect(nodeStatus(echo, { 'node:tap-strength': 1, 'node:tap-reach': 1 }, stats)).toBe(
+      'available',
+    );
+  });
+
+  it('keeps a node locked until its extra condition is met', () => {
+    const levels = { 'node:ball-limit': 1, 'node:auto-tap-interval': 1 };
+    const amplifier = findNode('node:amplifier');
+    expect(nodeStatus(amplifier, levels, computeStats(levels))).toBe('locked');
+    const crowded = { ...levels, 'node:extra-ball': 14 };
+    expect(nodeStatus(amplifier, crowded, computeStats(crowded))).toBe('available');
+  });
+
+  it('never sells content of a later version', () => {
+    const state = richState();
+    const triangle = findNode('node:triangle');
+    for (const id of triangle.requires) state.nodeLevels[id] = 1;
+    expect(nodeStatus(triangle, state.nodeLevels, computeStats(state.nodeLevels))).toBe('hidden');
+    expect(buyLevel(state, triangle.id, computeStats(state.nodeLevels))).toBe(false);
+  });
+
   it('can buy every node to its maximum with enough resources', () => {
     const game = new Game(richState(), 1);
     for (let round = 0; round < 50; round++) {
@@ -80,7 +105,9 @@ describe('buying', () => {
     }
     const capped = treeNodes.filter(
       (node) =>
-        (game.state.nodeLevels[node.id] ?? 0) < node.maxLevel && node.id !== 'node:extra-ball',
+        (game.state.nodeLevels[node.id] ?? 0) < node.maxLevel &&
+        node.id !== 'node:extra-ball' &&
+        !isFuture(node),
     );
     expect(capped.map((node) => node.id)).toEqual([]);
   });
@@ -121,5 +148,21 @@ describe('game', () => {
       }
     }
     expect(pushes).toBe(3);
+  });
+
+  it('repeats a tap as a weaker echo once the echo is bought', () => {
+    const state = richState();
+    state.nodeLevels['node:tap-echo'] = 1;
+    const game = new Game(state, 4);
+    game.tap(0, 0);
+    const strengths: number[] = [];
+    for (let tick = 0; tick < 60; tick++) {
+      game.step();
+      for (let index = 0; index < game.world.events.count; index++) {
+        const event = game.world.events.at(index);
+        if (event.kind === 'push') strengths.push(event.strength);
+      }
+    }
+    expect(strengths).toHaveLength(2);
   });
 });

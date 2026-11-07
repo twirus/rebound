@@ -5,7 +5,7 @@ import { gems } from '../src/content/gems';
 import { resources } from '../src/content/resources';
 import { shapes } from '../src/content/shapes';
 import { stats } from '../src/content/stats';
-import { treeNodes } from '../src/content/tree';
+import { treeGroups, treeNodes } from '../src/content/tree';
 import type { NodeId, TreeNodeDef } from '../src/content/types';
 import { BASE_STATS } from '../src/game/balance';
 import en from '../src/i18n/en.json';
@@ -21,6 +21,7 @@ const allEntries: readonly Identified[] = [
   ...balls,
   ...gems,
   ...treeNodes,
+  ...treeGroups,
   ...branches,
   ...stats,
 ];
@@ -33,6 +34,7 @@ const allTextKeys: readonly string[] = [
   ...balls.map((ball) => ball.nameKey),
   ...gems.flatMap((gem) => [gem.nameKey, gem.descriptionKey, gem.downsideKey]),
   ...treeNodes.flatMap((node) => [node.nameKey, node.descriptionKey]),
+  ...treeGroups.map((group) => group.nameKey),
 ];
 
 /** Returns ids that sit on a dependency cycle (depth-first search with colouring). */
@@ -105,6 +107,19 @@ describe('content', () => {
   it('describes every stat that has a base value', () => {
     const described: string[] = stats.map((stat) => stat.id);
     expect(Object.keys(BASE_STATS).filter((id) => !described.includes(id))).toEqual([]);
+  });
+
+  it('lists every upgrade in a group of its branch, and only upgrades', () => {
+    const invalid = treeNodes.filter((node) => {
+      const group = treeGroups.find((candidate) => candidate.id === node.group);
+      return node.kind === 'upgrade' ? group?.branch !== node.branch : node.group !== undefined;
+    });
+    expect(invalid.map((node) => node.id)).toEqual([]);
+  });
+
+  it('has no empty groups', () => {
+    const empty = treeGroups.filter((group) => !treeNodes.some((node) => node.group === group.id));
+    expect(empty.map((group) => group.id)).toEqual([]);
   });
 
   it('has no cycles in the tree', () => {

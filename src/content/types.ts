@@ -3,6 +3,7 @@ export type BallId = `ball:${string}`;
 export type GemId = `gem:${string}` | `law:${string}` | `link:${string}`;
 export type NodeId = `node:${string}`;
 export type ResourceId = `resource:${string}`;
+export type GroupId = `group:${string}`;
 
 /** Key in i18n/ru.json and i18n/en.json. */
 export type TextKey = string;
@@ -85,7 +86,11 @@ export type StatId =
   | 'stat:tap-strength'
   | 'stat:tap-cooldown'
   | 'stat:auto-tap'
-  | 'stat:auto-tap-interval';
+  | 'stat:auto-tap-interval'
+  | 'stat:auto-tap-power'
+  | 'stat:tap-reach'
+  | 'stat:tap-echo'
+  | 'stat:impulse-multiplier';
 
 /** Price of level L is ceil(base × growth^L). */
 export interface NodeCost {
@@ -100,16 +105,68 @@ export interface StatModifier {
   add: number;
 }
 
+/** Simple line icon drawn by the UI from its id; no image files. */
+export type IconId =
+  | 'ball'
+  | 'hit'
+  | 'collision'
+  | 'speed'
+  | 'arena'
+  | 'limit'
+  | 'tap'
+  | 'cooldown'
+  | 'reach'
+  | 'auto'
+  | 'echo'
+  | 'amplifier'
+  | 'triangle'
+  | 'square'
+  | 'hexagon'
+  | 'mass'
+  | 'gem'
+  | 'link'
+  | 'clock'
+  | 'note'
+  | 'core';
+
+/**
+ * unlock — opens something new, shown as a large card;
+ * upgrade — a level row inside a group of upgrades;
+ * key — changes a rule of the game, shown as a large card with a key mark.
+ */
+export type NodeKind = 'unlock' | 'upgrade' | 'key';
+
+/** Extra gate on top of `requires`. */
+export type NodeCondition =
+  | { kind: 'stat-at-least'; stat: StatId; value: number }
+  | { kind: 'levels-bought'; value: number }
+  /** Content of a later version: always a silhouette, never buyable. */
+  | { kind: 'future' };
+
 export interface TreeNodeDef {
   id: NodeId;
   branch: BranchId;
+  kind: NodeKind;
+  /** Required for upgrades: the group row they are listed in. */
+  group?: GroupId;
+  icon: IconId;
   nameKey: TextKey;
   descriptionKey: TextKey;
   /** Empty for a branch root. Layout is derived from these links; no coordinates in data. */
   requires: readonly NodeId[];
+  /** 'all' (default) — every requirement bought; 'any' — at least one. */
+  requiresMode?: 'all' | 'any';
+  conditions?: readonly NodeCondition[];
   maxLevel: number;
   costs: readonly NodeCost[];
   effects: readonly StatModifier[];
+}
+
+/** Box of upgrade rows; its place in the tree follows from its members' requirements. */
+export interface TreeGroupDef {
+  id: GroupId;
+  branch: BranchId;
+  nameKey: TextKey;
 }
 
 export interface StatDef {
