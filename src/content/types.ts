@@ -40,8 +40,10 @@ export type ShapeKind = 'circle' | 'rings';
 /** Nested rotating rings with one gap each; see sim/shapes/rings.ts. */
 export interface RingsParams {
   count: number;
-  /** Radius of the innermost ring as a share of the arena radius. */
-  innerShare: number;
+  /** Radius of the innermost ring, world units. */
+  innerRadius: number;
+  /** Distance between neighbouring rings; extra rings are added outward. */
+  spacing: number;
   gapDegrees: number;
   /** Rotation of the innermost ring; neighbours alternate direction and spin faster. */
   degreesPerSecond: number;

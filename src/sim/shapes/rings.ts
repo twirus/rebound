@@ -38,8 +38,9 @@ const RESPAWN_SPEED = 160;
 function createRing(def: ShapeDef, radius: number, index: number, count: number): Ring {
   const params = def.rings;
   if (!params) throw new Error(`${def.id} has no ring parameters`);
-  const inner = radius * params.innerShare;
-  const ringRadius = count === 1 ? radius : inner + ((radius - inner) * index) / (count - 1);
+  // Rings keep their proportions when the arena is scaled to `radius`.
+  const outer = params.innerRadius + params.spacing * (count - 1);
+  const ringRadius = (radius * (params.innerRadius + params.spacing * index)) / outer;
   const direction = index % 2 === 0 ? 1 : -1;
   const speed = params.degreesPerSecond * DEGREES_TO_RADIANS * (1 + params.speedStep * index);
   const turn = direction * speed * TICK_SECONDS;
@@ -62,6 +63,11 @@ function rotateGap(ring: Ring): void {
   const length = Math.sqrt(x * x + y * y);
   ring.gapX = x / length;
   ring.gapY = y / length;
+}
+
+/** Every break flips the spin of all rings, so the gaps never settle into a rhythm. */
+function reverseAll(state: RingsState): void {
+  for (const ring of state.rings) ring.turnSin = -ring.turnSin;
 }
 
 function ringIsClear(ring: Ring, balls: readonly Ball[]): boolean {
@@ -98,6 +104,7 @@ function touchRing(
     if (Math.abs(offset) < ball.radius * PASS_SHARE) {
       ring.broken = true;
       ring.regrowLeft = state.regrowTicks;
+      reverseAll(state);
       const { events, arenaIndex } = context;
       const x = ring.gapX * ring.radius;
       const y = ring.gapY * ring.radius;

@@ -137,7 +137,7 @@
   "resource.shards.perSecond": "+{value} Shards/s",
   "shape.circle.description": "A solid wall. Steady bounces, the most hits.",
   "shape.rings.name": "Rings",
-  "shape.rings.description": "Spinning rings with gaps. Flying through a gap shatters the ring for Shards. Leaving the last one is an Escape.",
+  "shape.rings.description": "Spinning rings with gaps. Flying through a gap shatters the ring for Shards and the rest reverse their spin. Leaving the last one is an Escape.",
   "group.rings.name": "Ring upgrades",
   "node.rings.name": "Rings",
   "node.rings.description": "A new arena shape: rings with gaps you can shatter. Produces Shards.",

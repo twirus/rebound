@@ -32,7 +32,7 @@ export const geometryNodes: readonly TreeNodeDef[] = [
     descriptionKey: 'node.ring-count.description',
     requires: ['node:rings'],
     maxLevel: 8,
-    costs: [{ resource: SHARDS, base: 15, growth: 1.95 }],
+    costs: [{ resource: SHARDS, base: 30, growth: 1.95 }],
     effects: [{ stat: 'stat:ring-count', add: 1 }],
   },
   {
@@ -45,7 +45,7 @@ export const geometryNodes: readonly TreeNodeDef[] = [
     descriptionKey: 'node.ring-gap.description',
     requires: ['node:rings'],
     maxLevel: 5,
-    costs: [{ resource: SHARDS, base: 25, growth: 2.05 }],
+    costs: [{ resource: SHARDS, base: 50, growth: 2.05 }],
     effects: [{ stat: 'stat:ring-gap', add: 5 }],
   },
   {
@@ -58,7 +58,7 @@ export const geometryNodes: readonly TreeNodeDef[] = [
     descriptionKey: 'node.ring-regrow.description',
     requires: ['node:rings'],
     maxLevel: 5,
-    costs: [{ resource: SHARDS, base: 40, growth: 2.05 }],
+    costs: [{ resource: SHARDS, base: 80, growth: 2.05 }],
     effects: [{ stat: 'stat:ring-regrow', add: -0.12 }],
   },
   {
@@ -72,7 +72,7 @@ export const geometryNodes: readonly TreeNodeDef[] = [
     requires: ['node:rings'],
     maxLevel: 5,
     costs: [
-      { resource: SHARDS, base: 60, growth: 2.15 },
+      { resource: SHARDS, base: 120, growth: 2.15 },
       { resource: IMPULSE, base: 3000, growth: 1.9 },
     ],
     effects: [{ stat: 'stat:shards-per-break', add: 1 }],
@@ -87,7 +87,7 @@ export const geometryNodes: readonly TreeNodeDef[] = [
     descriptionKey: 'node.shards-per-escape.description',
     requires: ['node:rings'],
     maxLevel: 4,
-    costs: [{ resource: SHARDS, base: 80, growth: 2.3 }],
+    costs: [{ resource: SHARDS, base: 160, growth: 2.3 }],
     effects: [{ stat: 'stat:shards-per-escape', add: 5 }],
   },
 ];

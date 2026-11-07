@@ -5,7 +5,7 @@ import { stepWorld } from '../../src/sim/step';
 import { findShape, setArenaShape, type Arena, type World } from '../../src/sim/world';
 import { worldWithBalls } from './helpers';
 
-const RADIUS = 200;
+const RADIUS = 292;
 const REGROW_TICKS = 8 * 120;
 
 function ringsWorld(): { world: World; arena: Arena; state: RingsState; innerRadius: number } {
@@ -36,9 +36,9 @@ function countEvents(world: World, ticks: number, kind: SimEventKind): number {
 describe('rings', () => {
   it('builds the configured number of rings, innermost first', () => {
     const { state, innerRadius } = ringsWorld();
-    expect(state.rings).toHaveLength(4);
-    expect(innerRadius).toBeCloseTo(RADIUS * 0.4);
-    expect(state.rings[3]?.radius).toBeCloseTo(RADIUS);
+    expect(state.rings).toHaveLength(12);
+    expect(innerRadius).toBeCloseTo(50);
+    expect(state.rings[11]?.radius).toBeCloseTo(RADIUS);
   });
 
   it('breaks a ring when a ball flies through its gap', () => {
@@ -47,6 +47,14 @@ describe('rings', () => {
     place(arena, 0, -(innerRadius - 15), 0, -400);
     expect(countEvents(world, 30, 'ring-break')).toBe(1);
     expect(state.rings[0]?.broken).toBe(true);
+  });
+
+  it('reverses the spin of every ring when one breaks', () => {
+    const { world, arena, state, innerRadius } = ringsWorld();
+    const spins = state.rings.map((ring) => ring.turnSin);
+    place(arena, 0, -(innerRadius - 15), 0, -400);
+    countEvents(world, 30, 'ring-break');
+    expect(state.rings.map((ring) => ring.turnSin)).toEqual(spins.map((spin) => -spin));
   });
 
   it('bounces a ball off the solid part and keeps the ring whole', () => {
