@@ -2,8 +2,8 @@ import type { Arena, Ball, World } from '../sim/world';
 import { findBall } from '../sim/world';
 import { BallTrails } from './ballTrails';
 import { PushRings } from './pushRings';
-import { RING_WIDTH_FACTOR, drawShapeWalls } from './shapeWalls';
-import { RingShatter } from './ringShatter';
+import { drawShapeWalls } from './shapeWalls';
+import { ShardBursts } from './shardBursts';
 
 const WALL_WIDTH_PX = 1.5;
 const WALL_ALPHA = 0.85;
@@ -30,7 +30,7 @@ export class ArenaRenderer {
   private readonly context: CanvasRenderingContext2D;
   private readonly colors: ThemeColors;
   private readonly pushRings = new PushRings();
-  private readonly ringShatter = new RingShatter();
+  private readonly shardBursts = new ShardBursts();
   private readonly trails = new BallTrails();
   /** Interpolated ball positions of the current frame, (x, y) pairs; grows as needed. */
   private positions = new Float64Array(64);
@@ -58,7 +58,7 @@ export class ArenaRenderer {
   collectEvents(world: World): void {
     const now = performance.now();
     this.pushRings.collect(world, MAIN_ARENA, now);
-    if (!this.reducedMotion.matches) this.ringShatter.collect(world, MAIN_ARENA, now);
+    this.shardBursts.collect(world, MAIN_ARENA, now);
   }
 
   /** Converts a point in CSS pixels (relative to the canvas) to arena coordinates. */
@@ -102,10 +102,8 @@ export class ArenaRenderer {
     context.lineWidth = WALL_WIDTH_PX / scale;
     drawShapeWalls(context, arena);
     context.globalAlpha = 1;
-    const now = performance.now();
-    const ringWidth = (WALL_WIDTH_PX * RING_WIDTH_FACTOR) / scale;
-    this.ringShatter.draw(context, this.colors.wall, ringWidth, scale, now);
 
+    const now = performance.now();
     this.interpolate(arena.balls, alpha);
     if (!this.reducedMotion.matches) {
       this.trails.record(arena.balls, this.positions, now);
@@ -123,6 +121,7 @@ export class ArenaRenderer {
       );
       context.fill();
     });
+    this.shardBursts.draw(context, this.colors.wall, scale, now);
     this.pushRings.draw(context, this.colors.wall, scale, now);
     context.restore();
   }
