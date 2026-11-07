@@ -4,8 +4,11 @@ import type { Ball } from '../world';
 import type { ShapeBehavior, ShapeContext, ShapeState } from './behavior';
 import { circleBehavior } from './circle';
 import { hexagonBehavior } from './hexagon';
+import { mosaicBehavior } from './mosaic';
 import { ringsBehavior } from './rings';
+import { spiralBehavior } from './spiral';
 import { squareBehavior } from './square';
+import { starBehavior } from './star';
 import { triangleBehavior } from './triangle';
 
 /** Every wall behaviour, by the `kind` used in content/shapes.ts. */
@@ -15,6 +18,9 @@ const behaviors: { [Kind in ShapeKind]: ShapeBehavior<Extract<ShapeState, { kind
   triangle: triangleBehavior,
   square: squareBehavior,
   hexagon: hexagonBehavior,
+  mosaic: mosaicBehavior,
+  spiral: spiralBehavior,
+  star: starBehavior,
 };
 
 /*

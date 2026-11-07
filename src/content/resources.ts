@@ -19,4 +19,16 @@ export const resources: readonly ResourceDef[] = [
     perSecondKey: 'resource.spectrum.perSecond',
     color: '#b59ad1',
   },
+  {
+    id: 'resource:mass',
+    nameKey: 'resource.mass.name',
+    perSecondKey: 'resource.mass.perSecond',
+    color: '#c98f6a',
+  },
+  {
+    id: 'resource:chronos',
+    nameKey: 'resource.chronos.name',
+    perSecondKey: 'resource.chronos.perSecond',
+    color: '#d4c36a',
+  },
 ];

@@ -1,3 +1,4 @@
+import type { Rng } from '../../core/rng';
 import type { Ball } from '../world';
 
 /**
@@ -29,4 +30,27 @@ export function kickToMinSpeed(ball: Ball, minSpeed: number): void {
   const factor = minSpeed / speed;
   ball.vx *= factor;
   ball.vy *= factor;
+}
+
+/**
+ * Holds the ball inside a round wall of the given radius and bounces it.
+ * Returns the impact speed, or 0 when the ball did not hit the wall.
+ */
+export function bounceInsideCircle(ball: Ball, radius: number, minBounceSpeed: number): number {
+  const distance = Math.sqrt(ball.x * ball.x + ball.y * ball.y);
+  const limit = radius - ball.radius;
+  if (distance <= limit || distance === 0) return 0;
+  const speed = bounceRadial(ball, ball.x / distance, ball.y / distance, limit, 1);
+  if (speed > 0) kickToMinSpeed(ball, minBounceSpeed);
+  return speed;
+}
+
+/** Puts the ball somewhere near the centre, within `spread`, heading up. */
+export function respawnNearCentre(ball: Ball, spread: number, speed: number, rng: Rng): void {
+  ball.x = rng.nextRange(-spread, spread);
+  ball.y = rng.nextRange(-spread, spread);
+  ball.prevX = ball.x;
+  ball.prevY = ball.y;
+  ball.vx = rng.nextRange(-speed, speed);
+  ball.vy = -speed;
 }

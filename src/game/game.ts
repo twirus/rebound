@@ -29,6 +29,8 @@ import { unlockedBalls, unlockedShapes } from './unlocks';
 const IMPULSE: ResourceId = 'resource:impulse';
 const SHARDS: ResourceId = 'resource:shards';
 const SPECTRUM: ResourceId = 'resource:spectrum';
+const MASS: ResourceId = 'resource:mass';
+const CHRONOS: ResourceId = 'resource:chronos';
 const MAIN_ARENA = 0;
 
 interface ScheduledPush {
@@ -164,6 +166,15 @@ export class Game {
     this.earn(IMPULSE, this.earnings.impulse);
     this.earn(SHARDS, this.earnings.shards);
     this.earn(SPECTRUM, this.earnings.spectrum);
+    this.earn(CHRONOS, this.earnings.chronos);
+    this.earn(MASS, this.earnings.mass + this.overflowMass());
+  }
+
+  /** Balls the current shape has no room for wait outside and condense into Mass. */
+  private overflowMass(): number {
+    const limit = findShape(this.state.arena.shape).maxBalls ?? Number.POSITIVE_INFINITY;
+    const waiting = Math.max(0, this.stats['stat:ball-count'] - limit);
+    return waiting * this.stats['stat:mass-per-waiting-ball'] * TICK_SECONDS;
   }
 
   private earn(resource: ResourceId, amount: number): void {

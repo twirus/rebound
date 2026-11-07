@@ -74,7 +74,7 @@ it('prints the purchase timeline', () => {
   );
   const income = game.income.perSecond();
   lines.push(
-    `income/s at end: impulse ${(income['resource:impulse'] ?? 0).toFixed(1)}, shards ${(income['resource:shards'] ?? 0).toFixed(2)}, spectrum ${(income['resource:spectrum'] ?? 0).toFixed(2)}`,
+    `income/s at end: impulse ${(income['resource:impulse'] ?? 0).toFixed(1)}, shards ${(income['resource:shards'] ?? 0).toFixed(2)}, spectrum ${(income['resource:spectrum'] ?? 0).toFixed(2)}, mass ${(income['resource:mass'] ?? 0).toFixed(2)}, chronos ${(income['resource:chronos'] ?? 0).toFixed(2)}`,
   );
   console.log(lines.join('\n'));
 }, 600_000);

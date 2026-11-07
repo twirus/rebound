@@ -51,3 +51,37 @@ export function detCos(angle: number): number {
   if (quadrant === 2) return -cosNearZero(rest);
   return sinNearZero(rest);
 }
+
+/** Taylor series of atan for |x| ≤ 0.2 (after two argument halvings). */
+function atanNearZero(x: number): number {
+  const x2 = x * x;
+  let term = x;
+  let sum = x;
+  for (let power = 3; power <= 17; power += 2) {
+    term *= -x2;
+    sum += term / power;
+  }
+  return sum;
+}
+
+/** atan for |x| ≤ 1, using atan(x) = 2·atan(x / (1 + √(1 + x²))) twice. */
+function atanUnit(x: number): number {
+  const once = x / (1 + Math.sqrt(1 + x * x));
+  const twice = once / (1 + Math.sqrt(1 + once * once));
+  return 4 * atanNearZero(twice);
+}
+
+export function detAtan(x: number): number {
+  if (x > 1) return HALF_PI - atanUnit(1 / x);
+  if (x < -1) return -HALF_PI - atanUnit(1 / x);
+  return atanUnit(x);
+}
+
+/** Angle of the point (x, y) in (−π, π], like Math.atan2. */
+export function detAtan2(y: number, x: number): number {
+  if (x > 0) return detAtan(y / x);
+  if (x < 0) return y >= 0 ? detAtan(y / x) + Math.PI : detAtan(y / x) - Math.PI;
+  if (y > 0) return HALF_PI;
+  if (y < 0) return -HALF_PI;
+  return 0;
+}

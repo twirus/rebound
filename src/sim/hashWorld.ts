@@ -11,6 +11,7 @@ export function hashWorld(world: World): string {
   for (const arena of world.arenas) {
     hasher.addNumber(arena.radius);
     hasher.addNumber(arena.minBounceSpeed);
+    hasher.addNumber(arena.gravity);
     hashShape(arena.shape, hasher);
     hasher.addNumber(arena.balls.length);
     for (const ball of arena.balls) {
@@ -23,6 +24,7 @@ export function hashWorld(world: World): string {
       hasher.addNumber(ball.clone ? ball.lifeTicks : 0);
       hasher.addNumber(ball.tint);
       hasher.addNumber(ball.streak);
+      hasher.addNumber(ball.heldTicks);
     }
   }
   return hasher.digest();

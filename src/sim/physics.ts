@@ -46,7 +46,7 @@ export function stepArena(arena: Arena, arenaIndex: number, world: World): void 
   for (let substep = 0; substep < substeps; substep++) {
     for (const ball of arena.balls) {
       // Semi-implicit Euler: velocity first keeps the bounce energy stable.
-      ball.vy += BASE_GRAVITY * ball.gravityScale * dt;
+      ball.vy += BASE_GRAVITY * arena.gravity * ball.gravityScale * dt;
       ball.x += ball.vx * dt;
       ball.y += ball.vy * dt;
     }

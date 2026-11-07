@@ -3,7 +3,7 @@ import type { ShapeDef } from '../../content/types';
 import { TICK_SECONDS } from '../constants';
 import type { Ball } from '../world';
 import type { ShapeBehavior, ShapeContext } from './behavior';
-import { bounceRadial, kickToMinSpeed } from './walls';
+import { bounceRadial, kickToMinSpeed, respawnNearCentre } from './walls';
 
 export interface Ring {
   radius: number;
@@ -70,14 +70,8 @@ function reverseAll(state: RingsState): void {
 }
 
 function respawn(ball: Ball, state: RingsState, context: ShapeContext): void {
-  const { rng } = context;
   const spread = ringsBehavior.spawnRadius(state, context.arena.radius) * RESPAWN_SPREAD;
-  ball.x = rng.nextRange(-spread, spread);
-  ball.y = rng.nextRange(-spread, spread);
-  ball.prevX = ball.x;
-  ball.prevY = ball.y;
-  ball.vx = rng.nextRange(-RESPAWN_SPEED, RESPAWN_SPEED);
-  ball.vy = -RESPAWN_SPEED;
+  respawnNearCentre(ball, spread, RESPAWN_SPEED, context.rng);
 }
 
 /**

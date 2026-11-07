@@ -5,12 +5,23 @@ import type { SimEventBuffer } from '../events';
 import type { Arena, Ball, World } from '../world';
 import type { CircleState } from './circle';
 import type { HexagonState } from './hexagon';
+import type { MosaicState } from './mosaic';
 import type { RingsState } from './rings';
+import type { SpiralState } from './spiral';
 import type { SquareState } from './square';
+import type { StarState } from './star';
 import type { TriangleState } from './triangle';
 
 /** Runtime state of an arena's walls; one member per shape kind. */
-export type ShapeState = CircleState | RingsState | TriangleState | SquareState | HexagonState;
+export type ShapeState =
+  | CircleState
+  | RingsState
+  | TriangleState
+  | SquareState
+  | HexagonState
+  | MosaicState
+  | SpiralState
+  | StarState;
 
 /** What a wall behaviour may touch during a tick. Reused, never stored. */
 export interface ShapeContext {

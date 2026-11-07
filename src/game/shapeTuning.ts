@@ -3,6 +3,8 @@ import type { Stats } from './stats';
 
 /** Fewest hits a combo or a portal shift can need, whatever the upgrades. */
 const MIN_COUNT = 1;
+/** Shortest charge a star ray can be upgraded to. */
+const MIN_CHARGE_SECONDS = 0.25;
 
 function tunedRings(def: ShapeDef, stats: Stats): ShapeDef {
   if (!def.rings) return def;
@@ -34,6 +36,24 @@ export function tunedShape(def: ShapeDef, stats: Stats): ShapeDef {
     ...(def.square && {
       square: {
         hitsPerShift: Math.max(MIN_COUNT, def.square.hitsPerShift + stats['stat:portal-shift']),
+      },
+    }),
+    ...(def.mosaic && {
+      mosaic: {
+        ...def.mosaic,
+        durability: Math.max(MIN_COUNT, def.mosaic.durability + stats['stat:tile-durability']),
+      },
+    }),
+    ...(def.spiral && {
+      spiral: { ...def.spiral, pull: def.spiral.pull * stats['stat:spiral-pull'] },
+    }),
+    ...(def.star && {
+      star: {
+        ...def.star,
+        chargeSeconds: Math.max(
+          MIN_CHARGE_SECONDS,
+          def.star.chargeSeconds + stats['stat:charge-seconds'],
+        ),
       },
     }),
     ...(def.hexagon && {

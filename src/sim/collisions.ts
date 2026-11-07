@@ -14,6 +14,8 @@ function ensureCapacity(count: number): void {
 
 /** Elastic collision of two circles; returns the closing speed, or 0 if nothing happened. */
 function resolvePair(first: Ball, second: Ball): number {
+  // A ball charging in a star ray is out of play until it fires; others pass through it.
+  if (first.heldTicks > 0 || second.heldTicks > 0) return 0;
   const dx = second.x - first.x;
   const dy = second.y - first.y;
   const minDistance = first.radius + second.radius;

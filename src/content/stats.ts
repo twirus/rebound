@@ -27,4 +27,11 @@ export const stats: readonly StatDef[] = [
   { id: 'stat:impulse-per-portal', nameKey: 'stat.impulse-per-portal.name' },
   { id: 'stat:combo-length', nameKey: 'stat.combo-length.name' },
   { id: 'stat:spectrum-per-combo', nameKey: 'stat.spectrum-per-combo.name' },
+  { id: 'stat:shards-per-tile', nameKey: 'stat.shards-per-tile.name' },
+  { id: 'stat:chronos-per-core', nameKey: 'stat.chronos-per-core.name' },
+  { id: 'stat:mass-per-merge', nameKey: 'stat.mass-per-merge.name' },
+  { id: 'stat:mass-per-waiting-ball', nameKey: 'stat.mass-per-waiting-ball.name' },
+  { id: 'stat:tile-durability', nameKey: 'stat.tile-durability.name' },
+  { id: 'stat:spiral-pull', nameKey: 'stat.spiral-pull.name' },
+  { id: 'stat:charge-seconds', nameKey: 'stat.charge-seconds.name' },
 ];

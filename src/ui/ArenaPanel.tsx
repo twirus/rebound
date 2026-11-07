@@ -2,7 +2,7 @@ import { balls } from '../content/balls';
 import { resources } from '../content/resources';
 import { shapes } from '../content/shapes';
 import { chooseBall, chooseShape } from '../game/session';
-import { arenaSetup, nodeLevels } from '../game/store';
+import { arenaSetup, currentStats, nodeLevels } from '../game/store';
 import { unlockedBalls, unlockedShapes } from '../game/unlocks';
 import { t } from '../i18n';
 
@@ -72,6 +72,8 @@ function BallOptions() {
 export function ArenaPanel() {
   const shape = shapes.find((candidate) => candidate.id === arenaSetup.value.shape);
   const ball = balls.find((candidate) => candidate.id === arenaSetup.value.ball);
+  const room = shape?.maxBalls ?? Number.POSITIVE_INFINITY;
+  const overflow = Math.max(0, currentStats.value['stat:ball-count'] - room);
   return (
     <aside class="arena-panel">
       <div class="arena-panel-head">
@@ -79,6 +81,9 @@ export function ArenaPanel() {
         <span class="dim">
           {shape ? t(shape.nameKey) : ''} · {ball ? t(ball.nameKey) : ''}
         </span>
+        {overflow > 0 && (
+          <span class="caption mute">{t('arena.overflow', { count: String(overflow) })}</span>
+        )}
       </div>
       <span class="caption dim">{t('arena.shape')}</span>
       <ShapeOptions />

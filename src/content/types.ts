@@ -35,7 +35,45 @@ export interface ResourceDef {
 }
 
 /** Which wall behaviour in sim/shapes/ runs the shape. */
-export type ShapeKind = 'circle' | 'rings' | 'triangle' | 'square' | 'hexagon';
+export type ShapeKind =
+  'circle' | 'rings' | 'triangle' | 'square' | 'hexagon' | 'mosaic' | 'spiral' | 'star';
+
+/** plain — just breaks; spring — fires the ball back hard; rich — double Shards. */
+export type MosaicTileType = 'plain' | 'spring' | 'rich';
+
+/** A round wall of breakable tiles; see sim/shapes/mosaic.ts. */
+export interface MosaicParams {
+  tiles: number;
+  /** Hits a tile takes before it breaks. */
+  durability: number;
+  regrowSeconds: number;
+  /** Tile types repeat around the wall in this order. */
+  pattern: readonly MosaicTileType[];
+  /** Speed a spring tile fires the ball back with. */
+  springSpeed: number;
+}
+
+/** A round wall with a pull towards a core; see sim/shapes/spiral.ts. */
+export interface SpiralParams {
+  /** Acceleration towards the centre, world units per second squared. */
+  pull: number;
+  /** Sideways push per unit of inward speed (per second): turns the fall into a spiral. */
+  swirl: number;
+  /** Share of sideways speed lost per second, so orbits decay inward instead of lasting forever. */
+  drag: number;
+  coreRadius: number;
+  /** Speed a ball is thrown back out with from the core. */
+  throwSpeed: number;
+}
+
+/** A round wall with rays that catch and charge balls; see sim/shapes/star.ts. */
+export interface StarParams {
+  rays: number;
+  /** Width of each ray as seen from the centre. */
+  rayDegrees: number;
+  chargeSeconds: number;
+  launchSpeed: number;
+}
 
 /** Regular polygon walls; the radius is the distance from the centre to a corner. */
 export interface PolygonParams {
@@ -92,6 +130,8 @@ export interface ShapeDef {
   radius: number;
   /** Most balls this shape holds; the rest wait for a roomier shape. No limit when omitted. */
   maxBalls?: number;
+  /** Multiplier on downward gravity in this shape; 1 when omitted. */
+  gravity?: number;
   /** Ball size in this shape relative to the ball type; 1 when omitted. */
   ballScale?: number;
   rings?: RingsParams;
@@ -99,6 +139,9 @@ export interface ShapeDef {
   triangle?: TriangleParams;
   square?: SquareParams;
   hexagon?: HexagonParams;
+  mosaic?: MosaicParams;
+  spiral?: SpiralParams;
+  star?: StarParams;
 }
 
 export interface BallDef {
@@ -161,7 +204,14 @@ export type StatId =
   | 'stat:portal-shift'
   | 'stat:impulse-per-portal'
   | 'stat:combo-length'
-  | 'stat:spectrum-per-combo';
+  | 'stat:spectrum-per-combo'
+  | 'stat:shards-per-tile'
+  | 'stat:chronos-per-core'
+  | 'stat:mass-per-merge'
+  | 'stat:mass-per-waiting-ball'
+  | 'stat:tile-durability'
+  | 'stat:spiral-pull'
+  | 'stat:charge-seconds';
 
 /** Price of level L is ceil(base × growth^L). */
 export interface NodeCost {

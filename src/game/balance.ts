@@ -36,6 +36,17 @@ export const BASE_STATS: Readonly<Record<StatId, number>> = {
   /** Added to the streak a hexagon combo needs (negative: shorter). */
   'stat:combo-length': 0,
   'stat:spectrum-per-combo': 1,
+  'stat:shards-per-tile': 1,
+  'stat:chronos-per-core': 1,
+  'stat:mass-per-merge': 2,
+  /** Mass per second from each ball the current shape has no room for. */
+  'stat:mass-per-waiting-ball': 0.2,
+  /** Added to the hits a mosaic tile takes (negative: breaks sooner). */
+  'stat:tile-durability': 0,
+  /** Multiplies the pull towards the spiral core. */
+  'stat:spiral-pull': 1,
+  /** Added to how long a ball charges in a star ray. */
+  'stat:charge-seconds': 0,
 };
 
 /** A node raising the key stat cannot be bought past the value of the mapped stat. */

@@ -8,7 +8,11 @@ export type SimEventKind =
   | 'corner-hit'
   | 'split'
   | 'portal'
-  | 'combo';
+  | 'combo'
+  | 'tile-break'
+  | 'core-reach'
+  | 'merge'
+  | 'launch';
 
 export interface SimEvent {
   kind: SimEventKind;

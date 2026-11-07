@@ -27,6 +27,10 @@ export interface Ball {
   tint: number;
   /** Hits in a row on walls of the current tint. */
   streak: number;
+  /** Ticks left pinned in a star ray, charging; 0 when free. */
+  heldTicks: number;
+  /** The ray holding the ball, −1 when free. */
+  heldSlot: number;
 }
 
 export interface Arena {
@@ -35,6 +39,8 @@ export interface Arena {
   radius: number;
   /** A ball leaving a wall slower than this is kicked up to it. */
   minBounceSpeed: number;
+  /** Multiplier on downward gravity, from the shape. */
+  gravity: number;
   shape: ShapeState;
   balls: Ball[];
 }
@@ -72,6 +78,7 @@ export function createWorld(seed: number): World {
     shapeId: shape.id,
     radius: shape.radius,
     minBounceSpeed: 0,
+    gravity: shape.gravity ?? 1,
     shape: createShapeState(shape, shape.radius),
     balls: [],
   };
@@ -120,6 +127,8 @@ export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
     lifeTicks: 0,
     tint: -1,
     streak: 0,
+    heldTicks: 0,
+    heldSlot: -1,
   };
   applyBallType(ball, typeId, arena);
   placeInSpawnArea(world, arena, ball);
@@ -178,6 +187,7 @@ export function setArenaShape(world: World, arena: Arena, def: ShapeDef, radius:
   const shapeChanged = arena.shapeId !== def.id;
   arena.shapeId = def.id;
   arena.radius = radius;
+  arena.gravity = def.gravity ?? 1;
   arena.shape = createShapeState(def, radius);
   if (!shapeChanged) return;
   arena.balls = arena.balls.filter((ball) => !ball.clone);
@@ -185,6 +195,8 @@ export function setArenaShape(world: World, arena: Arena, def: ShapeDef, radius:
     applyBallType(ball, ball.typeId, arena);
     ball.tint = -1;
     ball.streak = 0;
+    ball.heldTicks = 0;
+    ball.heldSlot = -1;
     placeInSpawnArea(world, arena, ball);
   }
 }
