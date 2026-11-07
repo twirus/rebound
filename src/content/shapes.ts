@@ -30,7 +30,7 @@ export const shapes: readonly ShapeDef[] = [
       spacing: 6,
       gapDegrees: 40,
       degreesPerSecond: 30,
-      speedStep: 0.015,
+      speedStep: 0.025,
     },
   },
 ];
