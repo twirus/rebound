@@ -1,3 +1,4 @@
+import { resources } from '../content/resources';
 import type { BallId, NodeId, ResourceId, ShapeId } from '../content/types';
 import { TICK_SECONDS } from '../sim/constants';
 import { queuePush, type PushInput } from '../sim/push';
@@ -26,11 +27,7 @@ import { tunedShape } from './shapeTuning';
 import { computeStats, type Stats } from './stats';
 import { unlockedBalls, unlockedShapes } from './unlocks';
 
-const IMPULSE: ResourceId = 'resource:impulse';
-const SHARDS: ResourceId = 'resource:shards';
-const SPECTRUM: ResourceId = 'resource:spectrum';
 const MASS: ResourceId = 'resource:mass';
-const CHRONOS: ResourceId = 'resource:chronos';
 const MAIN_ARENA = 0;
 
 interface ScheduledPush {
@@ -163,11 +160,9 @@ export class Game {
 
   private collectIncome(): void {
     this.earnings.collect(this.world.events, this.stats);
-    this.earn(IMPULSE, this.earnings.impulse);
-    this.earn(SHARDS, this.earnings.shards);
-    this.earn(SPECTRUM, this.earnings.spectrum);
-    this.earn(CHRONOS, this.earnings.chronos);
-    this.earn(MASS, this.earnings.mass + this.overflowMass());
+    const amounts = this.earnings.amounts;
+    amounts[MASS] = (amounts[MASS] ?? 0) + this.overflowMass();
+    for (const resource of resources) this.earn(resource.id, amounts[resource.id] ?? 0);
   }
 
   /** Balls the current shape has no room for wait outside and condense into Mass. */

@@ -1,65 +1,52 @@
-import type { SimEventBuffer } from '../sim/events';
+import { resources } from '../content/resources';
+import type { ResourceId, StatId } from '../content/types';
+import type { SimEventBuffer, SimEventKind } from '../sim/events';
+import type { ResourceTable } from './state';
+import { emptyResources } from './state';
 import type { Stats } from './stats';
+
+interface Reward {
+  resource: ResourceId;
+  /** Amount per event. */
+  stat: StatId;
+  /** The event's strength carries a multiplier (e.g. a rich mosaic tile). */
+  scaledByStrength?: boolean;
+}
+
+/** What each simulation event pays. Events not listed pay nothing. */
+const REWARDS: Partial<Record<SimEventKind, Reward>> = {
+  'wall-hit': { resource: 'resource:impulse', stat: 'stat:impulse-per-hit' },
+  'ball-collision': { resource: 'resource:impulse', stat: 'stat:impulse-per-collision' },
+  'corner-hit': { resource: 'resource:impulse', stat: 'stat:impulse-per-corner' },
+  portal: { resource: 'resource:impulse', stat: 'stat:impulse-per-portal' },
+  'ring-break': { resource: 'resource:shards', stat: 'stat:shards-per-break' },
+  escape: { resource: 'resource:shards', stat: 'stat:shards-per-escape' },
+  'tile-break': {
+    resource: 'resource:shards',
+    stat: 'stat:shards-per-tile',
+    scaledByStrength: true,
+  },
+  combo: { resource: 'resource:spectrum', stat: 'stat:spectrum-per-combo' },
+  merge: { resource: 'resource:mass', stat: 'stat:mass-per-merge' },
+  'core-reach': { resource: 'resource:chronos', stat: 'stat:chronos-per-core' },
+};
+
+/** Impulse from every source is multiplied by this stat. */
+const IMPULSE: ResourceId = 'resource:impulse';
 
 /** Resources earned from one tick of simulation events. Reused between ticks. */
 export class TickEarnings {
-  impulse = 0;
-  shards = 0;
-  spectrum = 0;
-  mass = 0;
-  chronos = 0;
+  readonly amounts: ResourceTable = emptyResources();
 
   collect(events: SimEventBuffer, stats: Stats): void {
-    let impulse = 0;
-    let shards = 0;
-    let spectrum = 0;
-    let mass = 0;
-    let chronos = 0;
+    for (const resource of resources) this.amounts[resource.id] = 0;
     for (let index = 0; index < events.count; index++) {
       const event = events.at(index);
-      switch (event.kind) {
-        case 'wall-hit':
-          impulse += stats['stat:impulse-per-hit'];
-          break;
-        case 'ball-collision':
-          impulse += stats['stat:impulse-per-collision'];
-          break;
-        case 'corner-hit':
-          impulse += stats['stat:impulse-per-corner'];
-          break;
-        case 'portal':
-          impulse += stats['stat:impulse-per-portal'];
-          break;
-        case 'ring-break':
-          shards += stats['stat:shards-per-break'];
-          break;
-        case 'escape':
-          shards += stats['stat:shards-per-escape'];
-          break;
-        case 'combo':
-          spectrum += stats['stat:spectrum-per-combo'];
-          break;
-        case 'tile-break':
-          // The event strength carries the tile's reward multiplier.
-          shards += stats['stat:shards-per-tile'] * event.strength;
-          break;
-        case 'core-reach':
-          chronos += stats['stat:chronos-per-core'];
-          break;
-        case 'merge':
-          mass += stats['stat:mass-per-merge'];
-          break;
-        case 'launch':
-        case 'push':
-        case 'round-reset':
-        case 'split':
-          break;
-      }
+      const reward = REWARDS[event.kind];
+      if (!reward) continue;
+      const amount = stats[reward.stat] * (reward.scaledByStrength ? event.strength : 1);
+      this.amounts[reward.resource] = (this.amounts[reward.resource] ?? 0) + amount;
     }
-    this.impulse = impulse * stats['stat:impulse-multiplier'];
-    this.shards = shards;
-    this.spectrum = spectrum;
-    this.mass = mass;
-    this.chronos = chronos;
+    this.amounts[IMPULSE] = (this.amounts[IMPULSE] ?? 0) * stats['stat:impulse-multiplier'];
   }
 }
