@@ -45,7 +45,7 @@ export interface RingsParams {
   /** Distance between neighbouring rings; extra rings are added outward. */
   spacing: number;
   gapDegrees: number;
-  /** Rotation of the innermost ring; neighbours alternate direction and spin faster. */
+  /** Rotation of the innermost ring; all rings spin the same way, outer ones faster. */
   degreesPerSecond: number;
   /** Each next ring outward spins this share faster. */
   speedStep: number;

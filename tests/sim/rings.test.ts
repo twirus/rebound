@@ -45,15 +45,35 @@ describe('rings', () => {
     const { world, arena, state, innerRadius } = ringsWorld();
     // The innermost gap starts at the top (negative y).
     place(arena, 0, -(innerRadius - 15), 0, -400);
-    expect(countEvents(world, 30, 'ring-break')).toBe(1);
+    // Gaps start lined up, so the ball may shatter several rings in a row.
+    expect(countEvents(world, 30, 'ring-break')).toBeGreaterThanOrEqual(1);
     expect(state.rings[0]?.broken).toBe(true);
+  });
+
+  it('lines the gaps up again after winding back the same time', () => {
+    const { world, arena, state } = ringsWorld();
+    arena.balls.length = 0;
+    for (let tick = 0; tick < 300; tick++) stepWorld(world);
+    const fanned = state.rings.map((ring) => ring.gapX);
+    expect(new Set(fanned.map((x) => x.toFixed(3))).size).toBeGreaterThan(1);
+    for (const ring of state.rings) ring.turnSin = -ring.turnSin;
+    for (let tick = 0; tick < 300; tick++) stepWorld(world);
+    for (const ring of state.rings) {
+      expect(ring.gapX).toBeCloseTo(0, 6);
+      expect(ring.gapY).toBeCloseTo(-1, 6);
+    }
   });
 
   it('reverses the spin of every ring when one breaks', () => {
     const { world, arena, state, innerRadius } = ringsWorld();
+    // Only the innermost ring can break, so the spin flips exactly once.
+    for (const ring of state.rings.slice(1)) {
+      ring.broken = true;
+      ring.regrowLeft = REGROW_TICKS;
+    }
     const spins = state.rings.map((ring) => ring.turnSin);
     place(arena, 0, -(innerRadius - 15), 0, -400);
-    countEvents(world, 30, 'ring-break');
+    expect(countEvents(world, 30, 'ring-break')).toBe(1);
     expect(state.rings.map((ring) => ring.turnSin)).toEqual(spins.map((spin) => -spin));
   });
 

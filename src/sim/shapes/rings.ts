@@ -27,8 +27,11 @@ export interface RingsState {
 }
 
 const DEGREES_TO_RADIANS = Math.PI / 180;
-/** Gaps start spread around the rings, this far apart, so a straight drop never clears them all. */
-const GAP_START_STEP = 2.4;
+/**
+ * Every gap starts here (straight up). Rings spin the same way at different
+ * speeds, so the gaps fan out; reversing brings them back into line here.
+ */
+const GAP_START_ANGLE = -Math.PI / 2;
 /** A ball counts as passing a gap once its centre is this share of its radius from the ring line. */
 const PASS_SHARE = 0.5;
 /** Escaped balls come back near the centre, within this share of the innermost radius. */
@@ -41,14 +44,12 @@ function createRing(def: ShapeDef, radius: number, index: number, count: number)
   // Rings keep their proportions when the arena is scaled to `radius`.
   const outer = params.innerRadius + params.spacing * (count - 1);
   const ringRadius = (radius * (params.innerRadius + params.spacing * index)) / outer;
-  const direction = index % 2 === 0 ? 1 : -1;
   const speed = params.degreesPerSecond * DEGREES_TO_RADIANS * (1 + params.speedStep * index);
-  const turn = direction * speed * TICK_SECONDS;
-  const startAngle = -Math.PI / 2 + index * GAP_START_STEP;
+  const turn = speed * TICK_SECONDS;
   return {
     radius: ringRadius,
-    gapX: detCos(startAngle),
-    gapY: detSin(startAngle),
+    gapX: detCos(GAP_START_ANGLE),
+    gapY: detSin(GAP_START_ANGLE),
     turnCos: detCos(turn),
     turnSin: detSin(turn),
     broken: false,
@@ -65,7 +66,7 @@ function rotateGap(ring: Ring): void {
   ring.gapY = y / length;
 }
 
-/** Every break flips the spin of all rings, so the gaps never settle into a rhythm. */
+/** Every break flips the spin of all rings: the gaps wind back towards their shared start. */
 function reverseAll(state: RingsState): void {
   for (const ring of state.rings) ring.turnSin = -ring.turnSin;
 }
