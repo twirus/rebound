@@ -29,8 +29,8 @@ export const shapes: readonly ShapeDef[] = [
       innerRadius: 29,
       spacing: 6,
       gapDegrees: 40,
-      degreesPerSecond: 36,
-      speedStep: 0.04,
+      degreesPerSecond: 30,
+      speedStep: 0.015,
     },
   },
 ];
