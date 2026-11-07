@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { ResourceId } from '../../src/content/types';
 import { treeNodes } from '../../src/content/tree';
 import { BASE_STATS, nodePrice } from '../../src/game/balance';
+import { TickEarnings } from '../../src/game/earnings';
 import { Game } from '../../src/game/game';
+import { SimEventBuffer } from '../../src/sim/events';
+import { newBall } from '../../src/sim/ball';
 import { buyLevel, findNode, isFuture, nodeStatus } from '../../src/game/purchases';
 import { newGameState, type GameState } from '../../src/game/state';
 import { computeStats } from '../../src/game/stats';
@@ -19,6 +22,24 @@ describe('prices', () => {
     expect(nodePrice(cost, 0)).toBe(10);
     expect(nodePrice(cost, 1)).toBe(15);
     expect(nodePrice(cost, 2)).toBe(23);
+  });
+});
+
+describe('earnings', () => {
+  it('pays by ball type: heavy double, void nothing', () => {
+    const stats = computeStats({});
+    const events = new SimEventBuffer();
+    const earnings = new TickEarnings();
+    for (const [type, expected] of [
+      ['ball:basic', 1],
+      ['ball:heavy', 2],
+      ['ball:void', 0],
+    ] as const) {
+      events.clear();
+      events.push('wall-hit', 0, 0, 0, 100, newBall(1, type, 1));
+      earnings.collect(events, stats);
+      expect(earnings.amounts['resource:impulse']).toBe(expected);
+    }
   });
 });
 
@@ -93,7 +114,7 @@ describe('buying', () => {
 
   it('never sells content of a later version', () => {
     const state = richState();
-    const future = findNode('node:heavy-ball');
+    const future = findNode('node:gem-slot');
     for (const id of future.requires) state.nodeLevels[id] = 1;
     expect(nodeStatus(future, state.nodeLevels, computeStats(state.nodeLevels))).toBe('hidden');
     expect(buyLevel(state, future.id, computeStats(state.nodeLevels))).toBe(false);

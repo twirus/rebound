@@ -45,7 +45,7 @@ function pin(state: StarState, ball: Ball, radius: number): void {
 function enterRay(state: StarState, ball: Ball, ray: number, context: ShapeContext): void {
   const { arena, arenaIndex, events, rng } = context;
   if (state.heldBy[ray] !== -1) {
-    events.push('merge', arenaIndex, ball.x, ball.y, ball.radius);
+    events.push('merge', arenaIndex, ball.x, ball.y, ball.radius, ball);
     respawnNearCentre(ball, arena.radius * RESPAWN_SHARE, RESPAWN_SPEED, rng);
     return;
   }
@@ -87,7 +87,7 @@ export const starBehavior: ShapeBehavior<StarState> = {
       ball.vy = -(state.raysY[ray] ?? 0) * state.launchSpeed;
       state.heldBy[ray] = -1;
       ball.heldSlot = -1;
-      events.push('launch', arenaIndex, ball.x, ball.y, state.launchSpeed);
+      events.push('launch', arenaIndex, ball.x, ball.y, state.launchSpeed, ball);
     }
   },
 
@@ -108,7 +108,7 @@ export const starBehavior: ShapeBehavior<StarState> = {
     if (speed === 0) return;
     const hitX = (ball.x / distance) * arena.radius;
     const hitY = (ball.y / distance) * arena.radius;
-    events.push('wall-hit', arenaIndex, hitX, hitY, speed);
+    events.push('wall-hit', arenaIndex, hitX, hitY, speed, ball);
   },
 
   spawnRadius: (_state, arenaRadius) => arenaRadius,

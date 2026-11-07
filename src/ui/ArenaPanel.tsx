@@ -22,7 +22,8 @@ function Option({ name, note, selected, onPick }: OptionProps) {
       onClick={onPick}
     >
       <span class="arena-option-name">{name}</span>
-      <span class="arena-option-note">{note}</span>
+      {/* Only the picked option explains itself, so the list stays short. */}
+      {selected && <span class="arena-option-note">{note}</span>}
     </button>
   );
 }

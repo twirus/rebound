@@ -1,6 +1,7 @@
-import type { SimEventBuffer } from './events';
+import { afterTouch } from './balls';
+import type { ShapeContext } from './shapes';
 import { SpatialGrid } from './spatialGrid';
-import type { Arena, Ball } from './world';
+import type { Ball } from './world';
 
 const grid = new SpatialGrid();
 let xs = new Float64Array(64);
@@ -16,6 +17,7 @@ function ensureCapacity(count: number): void {
 function resolvePair(first: Ball, second: Ball): number {
   // A ball charging in a star ray is out of play until it fires; others pass through it.
   if (first.heldTicks > 0 || second.heldTicks > 0) return 0;
+  if (!first.solid || !second.solid) return 0;
   const dx = second.x - first.x;
   const dy = second.y - first.y;
   const minDistance = first.radius + second.radius;
@@ -51,7 +53,8 @@ function fillPositions(balls: readonly Ball[]): number {
 }
 
 /** Each ball is checked against higher-index balls in its own and neighbouring cells. */
-export function collideBalls(arena: Arena, arenaIndex: number, events: SimEventBuffer): void {
+export function collideBalls(context: ShapeContext): void {
+  const { arena, arenaIndex, events } = context;
   const balls = arena.balls;
   const count = balls.length;
   if (count < 2) return;
@@ -73,6 +76,7 @@ export function collideBalls(arena: Arena, arenaIndex: number, events: SimEventB
               const midX = (ball.x + otherBall.x) / 2;
               const midY = (ball.y + otherBall.y) / 2;
               events.push('ball-collision', arenaIndex, midX, midY, speed);
+              afterTouch(ball, otherBall, context);
             }
           }
           other = grid.nextAfter(other);

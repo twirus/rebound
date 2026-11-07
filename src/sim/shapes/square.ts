@@ -48,12 +48,12 @@ export const squareBehavior: ShapeBehavior<SquareState> = {
     for (let side = 0; side < state.polygon.sides; side++) {
       if (side === state.portalSide) {
         if (beyondSide(state.polygon, side, ball.x, ball.y) <= 0) continue;
-        events.push('portal', arenaIndex, ball.x, ball.y, side);
+        events.push('portal', arenaIndex, ball.x, ball.y, side, ball);
         teleport(state, ball);
         continue;
       }
       if (!collideSide(state.polygon, side, ball, arena.minBounceSpeed, contact)) continue;
-      events.push('wall-hit', arenaIndex, contact.x, contact.y, contact.speed);
+      events.push('wall-hit', arenaIndex, contact.x, contact.y, contact.speed, ball);
       state.hitsLeft -= 1;
       if (state.hitsLeft > 0) continue;
       state.portalSide = (state.portalSide + 1) % state.polygon.sides;

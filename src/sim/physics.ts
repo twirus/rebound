@@ -1,11 +1,8 @@
 import { collideBalls } from './collisions';
-import {
-  BASE_GRAVITY,
-  MAX_BALL_SPEED,
-  MAX_SUBSTEPS,
-  MAX_TRAVEL_PER_SUBSTEP,
-  TICK_SECONDS,
-} from './constants';
+import { BASE_GRAVITY, MAX_SUBSTEPS, MAX_TRAVEL_PER_SUBSTEP, TICK_SECONDS } from './constants';
+import { BallStatus } from './ball';
+import { afterWallContact, tickBalls } from './balls';
+import { isStill } from './balls/status';
 import { collideShape, stepShape, type ShapeContext } from './shapes';
 import { expireClones, type Arena, type Ball, type World } from './world';
 
@@ -45,16 +42,22 @@ export function stepArena(arena: Arena, arenaIndex: number, world: World): void 
   const dt = TICK_SECONDS / substeps;
   for (let substep = 0; substep < substeps; substep++) {
     for (const ball of arena.balls) {
+      if (isStill(ball)) continue;
       // Semi-implicit Euler: velocity first keeps the bounce energy stable.
       ball.vy += BASE_GRAVITY * arena.gravity * ball.gravityScale * dt;
       ball.x += ball.vx * dt;
       ball.y += ball.vy * dt;
     }
-    collideBalls(arena, arenaIndex, world.events);
+    collideBalls(context);
     for (const ball of arena.balls) {
-      collideShape(arena.shape, ball, context);
-      limitSpeed(ball, MAX_BALL_SPEED);
+      if (ball.status !== BallStatus.phasing) {
+        const firstEvent = world.events.count;
+        collideShape(arena.shape, ball, context);
+        afterWallContact(ball, firstEvent, context);
+      }
+      limitSpeed(ball, ball.maxSpeed);
     }
   }
+  tickBalls(context);
   expireClones(arena);
 }

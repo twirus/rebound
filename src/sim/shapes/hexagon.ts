@@ -32,7 +32,7 @@ export const hexagonBehavior: ShapeBehavior<HexagonState> = {
   collide(state, ball, { arena, arenaIndex, events }) {
     for (let side = 0; side < state.polygon.sides; side++) {
       if (!collideSide(state.polygon, side, ball, arena.minBounceSpeed, contact)) continue;
-      events.push('wall-hit', arenaIndex, contact.x, contact.y, contact.speed);
+      events.push('wall-hit', arenaIndex, contact.x, contact.y, contact.speed, ball);
       const color = side % state.colorCount;
       if (ball.tint === color) {
         ball.streak += 1;
@@ -41,7 +41,7 @@ export const hexagonBehavior: ShapeBehavior<HexagonState> = {
         ball.streak = 1;
       }
       if (ball.streak >= state.comboLength) {
-        events.push('combo', arenaIndex, contact.x, contact.y, ball.streak);
+        events.push('combo', arenaIndex, contact.x, contact.y, ball.streak, ball);
       }
     }
   },

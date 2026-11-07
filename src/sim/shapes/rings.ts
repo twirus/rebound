@@ -110,10 +110,10 @@ function touchRing(
       const { events, arenaIndex } = context;
       const x = ring.gapX * ring.radius;
       const y = ring.gapY * ring.radius;
-      events.push('ring-break', arenaIndex, x, y, ring.radius);
+      events.push('ring-break', arenaIndex, x, y, ring.radius, ball);
       // A ball can only reach the last ring by breaking every ring inside it.
       if (ring === state.rings[state.rings.length - 1]) {
-        events.push('escape', arenaIndex, x, y, ring.radius);
+        events.push('escape', arenaIndex, x, y, ring.radius, ball);
       }
     }
     return true;
@@ -124,7 +124,7 @@ function touchRing(
   if (speed > 0) {
     kickToMinSpeed(ball, context.arena.minBounceSpeed);
     const { events, arenaIndex } = context;
-    events.push('wall-hit', arenaIndex, normalX * ring.radius, normalY * ring.radius, speed);
+    events.push('wall-hit', arenaIndex, normalX * ring.radius, normalY * ring.radius, speed, ball);
   }
   return true;
 }

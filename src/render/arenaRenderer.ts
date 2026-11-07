@@ -1,18 +1,12 @@
-import { TICK_SECONDS } from '../sim/constants';
-import { findBall, findShape, type Arena, type Ball, type World } from '../sim/world';
+import type { Arena, Ball, World } from '../sim/world';
+import { lookOf, type BallLook } from './ballLook';
 import { BallTrails } from './ballTrails';
 import { PushRings } from './pushRings';
 import { drawShapeWalls } from './shapeWalls';
 import { ShardBursts } from './shardBursts';
 
 const WALL_WIDTH_PX = 1.5;
-const CLONE_ALPHA = 0.6;
-/** Copies fade out over their last this many seconds. */
-const CLONE_FADE_SECONDS = 1;
 
-function cloneAlpha(lifeTicks: number): number {
-  return CLONE_ALPHA * Math.min(1, (lifeTicks * TICK_SECONDS) / CLONE_FADE_SECONDS);
-}
 const WALL_ALPHA = 0.85;
 /** Share of the shorter canvas side the arena occupies. */
 const ARENA_FILL = 0.9;
@@ -39,6 +33,7 @@ export class ArenaRenderer {
   private readonly pushRings = new PushRings();
   private readonly shardBursts = new ShardBursts();
   private readonly trails = new BallTrails();
+  private readonly look: BallLook = { color: '', alpha: 1 };
   /** Interpolated ball positions of the current frame, (x, y) pairs; grows as needed. */
   private positions = new Float64Array(64);
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -116,10 +111,10 @@ export class ArenaRenderer {
       this.trails.record(arena.balls, this.positions, now);
       this.trails.draw(context, arena.balls, now);
     }
-    const tints = findShape(arena.shapeId).hexagon?.colors ?? [];
     arena.balls.forEach((ball, index) => {
-      context.fillStyle = tints[ball.tint] ?? findBall(ball.typeId).color;
-      context.globalAlpha = ball.clone ? cloneAlpha(ball.lifeTicks) : 1;
+      lookOf(ball, this.look);
+      context.fillStyle = this.look.color;
+      context.globalAlpha = this.look.alpha;
       context.beginPath();
       context.arc(
         this.positions[index * 2] ?? 0,

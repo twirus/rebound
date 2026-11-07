@@ -1,37 +1,10 @@
 import { Rng } from '../core/rng';
-import { balls } from '../content/balls';
 import { shapes } from '../content/shapes';
-import type { BallDef, BallId, ShapeDef, ShapeId } from '../content/types';
+import type { BallId, ShapeDef, ShapeId } from '../content/types';
+import { applyBallType, clearBallState, newBall, type Ball } from './ball';
 import { SimEventBuffer } from './events';
 import type { PushInput } from './push';
 import { createShapeState, shapeSpawnRadius, type ShapeState } from './shapes';
-
-export interface Ball {
-  id: number;
-  typeId: BallId;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  /** Position at the start of the current tick, for render interpolation. */
-  prevX: number;
-  prevY: number;
-  radius: number;
-  mass: number;
-  gravityScale: number;
-  /** A temporary copy (triangle split); clones never split again. */
-  clone: boolean;
-  /** Ticks a clone has left; 0 for permanent balls. */
-  lifeTicks: number;
-  /** Colour index picked up from a coloured wall, −1 for none. */
-  tint: number;
-  /** Hits in a row on walls of the current tint. */
-  streak: number;
-  /** Ticks left pinned in a star ray, charging; 0 when free. */
-  heldTicks: number;
-  /** The ray holding the ball, −1 when free. */
-  heldSlot: number;
-}
 
 export interface Arena {
   shapeId: ShapeId;
@@ -66,11 +39,8 @@ export function findShape(id: ShapeId): ShapeDef {
   return shape;
 }
 
-export function findBall(id: BallId): BallDef {
-  const ball = balls.find((candidate) => candidate.id === id);
-  if (!ball) throw new Error(`Unknown ball ${id}`);
-  return ball;
-}
+export type { Ball } from './ball';
+export { findBall } from './ball';
 
 export function createWorld(seed: number): World {
   const shape = findShape(START_SHAPE);
@@ -100,37 +70,13 @@ function placeInSpawnArea(world: World, arena: Arena, ball: Ball): void {
   ball.prevY = ball.y;
 }
 
-/** Gives the ball the size and physics of its type, scaled for the arena's shape. */
-export function applyBallType(ball: Ball, typeId: BallId, arena: Arena): void {
-  const def = findBall(typeId);
-  const radius = def.radius * (findShape(arena.shapeId).ballScale ?? 1);
-  ball.typeId = typeId;
-  ball.radius = radius;
-  ball.mass = radius * radius;
-  ball.gravityScale = def.gravityScale;
+/** Ball size in the arena's shape relative to the ball type. */
+export function ballSizeScale(arena: Arena): number {
+  return findShape(arena.shapeId).ballScale ?? 1;
 }
 
 export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
-  const ball: Ball = {
-    id: world.nextBallId,
-    typeId,
-    x: 0,
-    y: 0,
-    vx: 0,
-    vy: 0,
-    prevX: 0,
-    prevY: 0,
-    radius: 0,
-    mass: 0,
-    gravityScale: 0,
-    clone: false,
-    lifeTicks: 0,
-    tint: -1,
-    streak: 0,
-    heldTicks: 0,
-    heldSlot: -1,
-  };
-  applyBallType(ball, typeId, arena);
+  const ball = newBall(world.nextBallId, typeId, ballSizeScale(arena));
   placeInSpawnArea(world, arena, ball);
   ball.vx = world.rng.nextRange(-SPAWN_SPEED, SPAWN_SPEED);
   world.nextBallId += 1;
@@ -192,11 +138,8 @@ export function setArenaShape(world: World, arena: Arena, def: ShapeDef, radius:
   if (!shapeChanged) return;
   arena.balls = arena.balls.filter((ball) => !ball.clone);
   for (const ball of arena.balls) {
-    applyBallType(ball, ball.typeId, arena);
-    ball.tint = -1;
-    ball.streak = 0;
-    ball.heldTicks = 0;
-    ball.heldSlot = -1;
+    applyBallType(ball, ball.typeId, ballSizeScale(arena));
+    clearBallState(ball);
     placeInSpawnArea(world, arena, ball);
   }
 }

@@ -36,7 +36,7 @@ export const spiralBehavior: ShapeBehavior<SpiralState> = {
       const normalY = ball.y / distance;
       const inward = ball.vx * normalX + ball.vy * normalY < 0;
       if (distance < state.coreRadius && inward) {
-        events.push('core-reach', arenaIndex, ball.x, ball.y, distance);
+        events.push('core-reach', arenaIndex, ball.x, ball.y, distance, ball);
         // Thrown out at a slant, so the way back in is a spiral, not a straight line.
         ball.vx = (normalX * THROW_COS - normalY * THROW_SIN) * state.throwSpeed;
         ball.vy = (normalX * THROW_SIN + normalY * THROW_COS) * state.throwSpeed;
@@ -61,7 +61,7 @@ export const spiralBehavior: ShapeBehavior<SpiralState> = {
     const distance = Math.sqrt(ball.x * ball.x + ball.y * ball.y);
     const hitX = (ball.x / distance) * arena.radius;
     const hitY = (ball.y / distance) * arena.radius;
-    events.push('wall-hit', arenaIndex, hitX, hitY, speed);
+    events.push('wall-hit', arenaIndex, hitX, hitY, speed, ball);
   },
 
   spawnRadius: (_state, arenaRadius) => arenaRadius,

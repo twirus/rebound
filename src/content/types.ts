@@ -144,8 +144,54 @@ export interface ShapeDef {
   star?: StarParams;
 }
 
+/** Which behaviour module in sim/balls/ runs the ball type. */
+export type BallKind =
+  | 'basic'
+  | 'heavy'
+  | 'light'
+  | 'sticky'
+  | 'bouncy'
+  | 'chameleon'
+  | 'frost'
+  | 'ember'
+  | 'seed'
+  | 'core'
+  | 'phantom'
+  | 'void';
+
+/** Numbers for the special behaviours; each type uses only its own. */
+export interface BallParams {
+  /** sticky: how long it clings to a wall. */
+  stickSeconds?: number;
+  /** chameleon: how many colours it cycles through (matching the hexagon's). */
+  colorCount?: number;
+  /** bouncy: speed gained per wall hit, as a share. */
+  speedGainPerHit?: number;
+  /** bouncy: chance per hit at top speed to shatter. */
+  shatterChance?: number;
+  /** frost: how long a ball it touches stays frozen. */
+  freezeSeconds?: number;
+  /** ember: heat per wall hit, heat lost per second, and the heat that melts a wall or burns the ball out. */
+  heatPerHit?: number;
+  coolPerSecond?: number;
+  meltHeat?: number;
+  burnHeat?: number;
+  /** seed and phantom: act on every this-many wall hits. */
+  everyHits?: number;
+  /** seed: hatchlings per hatch, how long they live and how big they are. */
+  hatchCount?: number;
+  hatchSeconds?: number;
+  hatchScale?: number;
+  /** core: pull on other balls within this radius. */
+  pullRadius?: number;
+  pullStrength?: number;
+  /** phantom and ember: how long a ball passes through walls. */
+  phaseSeconds?: number;
+}
+
 export interface BallDef {
   id: BallId;
+  kind: BallKind;
   nameKey: TextKey;
   descriptionKey: TextKey;
   tags: readonly Tag[];
@@ -154,6 +200,13 @@ export interface BallDef {
   /** Multiplier on arena gravity. */
   gravityScale: number;
   color: string;
+  /** Multiplier on everything this ball earns; 1 when omitted. */
+  rewardScale?: number;
+  /** Multiplier on the speed cap; 1 when omitted. */
+  speedScale?: number;
+  /** Takes part in collisions with other balls; true when omitted. */
+  solid?: boolean;
+  params?: BallParams;
 }
 
 export type GemKind = 'event' | 'effect' | 'support' | 'condition' | 'law' | 'link';

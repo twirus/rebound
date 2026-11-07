@@ -1,3 +1,5 @@
+import type { BallId } from '../content/types';
+import type { Ball } from './world';
 export type SimEventKind =
   | 'wall-hit'
   | 'ball-collision'
@@ -12,7 +14,10 @@ export type SimEventKind =
   | 'tile-break'
   | 'core-reach'
   | 'merge'
-  | 'launch';
+  | 'launch'
+  | 'unstick'
+  | 'vanish'
+  | 'hatch';
 
 export interface SimEvent {
   kind: SimEventKind;
@@ -21,6 +26,8 @@ export interface SimEvent {
   y: number;
   /** Impact speed for hits and collisions, reach for pushes, ring radius for breaks. */
   strength: number;
+  /** Type of the ball that caused the event, null when no single ball did. */
+  ballType: BallId | null;
 }
 
 /**
@@ -31,10 +38,18 @@ export class SimEventBuffer {
   private readonly items: SimEvent[] = [];
   count = 0;
 
-  push(kind: SimEventKind, arenaIndex: number, x: number, y: number, strength: number): void {
+  push(
+    kind: SimEventKind,
+    arenaIndex: number,
+    x: number,
+    y: number,
+    strength: number,
+    ball: Ball | null = null,
+  ): void {
+    const ballType = ball ? ball.typeId : null;
     let event = this.items[this.count];
     if (!event) {
-      event = { kind, arenaIndex, x, y, strength };
+      event = { kind, arenaIndex, x, y, strength, ballType };
       this.items.push(event);
     } else {
       event.kind = kind;
@@ -42,6 +57,7 @@ export class SimEventBuffer {
       event.x = x;
       event.y = y;
       event.strength = strength;
+      event.ballType = ballType;
     }
     this.count += 1;
   }

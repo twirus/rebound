@@ -25,6 +25,10 @@ export function hashWorld(world: World): string {
       hasher.addNumber(ball.tint);
       hasher.addNumber(ball.streak);
       hasher.addNumber(ball.heldTicks);
+      hasher.addNumber(ball.status);
+      hasher.addNumber(ball.statusTicks);
+      hasher.addNumber(ball.hits);
+      hasher.addNumber(ball.heat);
     }
   }
   return hasher.digest();

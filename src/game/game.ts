@@ -2,10 +2,11 @@ import { resources } from '../content/resources';
 import type { BallId, NodeId, ResourceId, ShapeId } from '../content/types';
 import { TICK_SECONDS } from '../sim/constants';
 import { queuePush, type PushInput } from '../sim/push';
+import { applyBallType, clearBallState } from '../sim/ball';
 import { stepWorld } from '../sim/step';
 import {
   createWorld,
-  applyBallType,
+  ballSizeScale,
   findShape,
   permanentBallCount,
   setArenaShape,
@@ -116,7 +117,10 @@ export class Game {
     if (!unlockedBalls(this.state.nodeLevels).includes(ballId)) return false;
     this.state.arena.ball = ballId;
     const arena = this.mainArena();
-    for (const ball of arena.balls) applyBallType(ball, ballId, arena);
+    for (const ball of arena.balls) {
+      applyBallType(ball, ballId, ballSizeScale(arena));
+      clearBallState(ball);
+    }
     return true;
   }
 

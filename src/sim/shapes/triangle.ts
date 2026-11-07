@@ -40,10 +40,10 @@ export const triangleBehavior: ShapeBehavior<TriangleState> = {
     const { world, arena, arenaIndex, events } = context;
     for (let side = 0; side < state.polygon.sides; side++) {
       if (!collideSide(state.polygon, side, ball, arena.minBounceSpeed, contact)) continue;
-      events.push('wall-hit', arenaIndex, contact.x, contact.y, contact.speed);
+      events.push('wall-hit', arenaIndex, contact.x, contact.y, contact.speed, ball);
       const nearCorner = contact.along < state.cornerShare || contact.along > 1 - state.cornerShare;
       if (!nearCorner) continue;
-      events.push('corner-hit', arenaIndex, contact.x, contact.y, contact.speed);
+      events.push('corner-hit', arenaIndex, contact.x, contact.y, contact.speed, ball);
       if (ball.clone) continue;
       const { vx, vy } = ball;
       const clone = spawnClone(
@@ -58,7 +58,7 @@ export const triangleBehavior: ShapeBehavior<TriangleState> = {
       if (!clone) continue;
       ball.vx = vx * SPLIT_COS + vy * SPLIT_SIN;
       ball.vy = -vx * SPLIT_SIN + vy * SPLIT_COS;
-      events.push('split', arenaIndex, ball.x, ball.y, 0);
+      events.push('split', arenaIndex, ball.x, ball.y, 0, ball);
     }
   },
 

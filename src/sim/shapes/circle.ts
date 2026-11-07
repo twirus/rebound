@@ -18,7 +18,14 @@ export const circleBehavior: ShapeBehavior<CircleState> = {
     const speed = bounceRadial(ball, normalX, normalY, limit, 1);
     if (speed === 0) return;
     kickToMinSpeed(ball, arena.minBounceSpeed);
-    events.push('wall-hit', arenaIndex, normalX * arena.radius, normalY * arena.radius, speed);
+    events.push(
+      'wall-hit',
+      arenaIndex,
+      normalX * arena.radius,
+      normalY * arena.radius,
+      speed,
+      ball,
+    );
   },
   spawnRadius: (_state, arenaRadius) => arenaRadius,
   hash: () => undefined,

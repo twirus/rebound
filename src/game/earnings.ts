@@ -1,3 +1,4 @@
+import { balls } from '../content/balls';
 import { resources } from '../content/resources';
 import type { ResourceId, StatId } from '../content/types';
 import type { SimEventBuffer, SimEventKind } from '../sim/events';
@@ -31,6 +32,9 @@ const REWARDS: Partial<Record<SimEventKind, Reward>> = {
   'core-reach': { resource: 'resource:chronos', stat: 'stat:chronos-per-core' },
 };
 
+/** Reward multiplier of each ball type (heavy pays double, void nothing). */
+const REWARD_SCALE = new Map(balls.map((ball) => [ball.id, ball.rewardScale ?? 1]));
+
 /** Impulse from every source is multiplied by this stat. */
 const IMPULSE: ResourceId = 'resource:impulse';
 
@@ -44,7 +48,8 @@ export class TickEarnings {
       const event = events.at(index);
       const reward = REWARDS[event.kind];
       if (!reward) continue;
-      const amount = stats[reward.stat] * (reward.scaledByStrength ? event.strength : 1);
+      const byType = event.ballType ? (REWARD_SCALE.get(event.ballType) ?? 1) : 1;
+      const amount = stats[reward.stat] * (reward.scaledByStrength ? event.strength : 1) * byType;
       this.amounts[reward.resource] = (this.amounts[reward.resource] ?? 0) + amount;
     }
     this.amounts[IMPULSE] = (this.amounts[IMPULSE] ?? 0) * stats['stat:impulse-multiplier'];

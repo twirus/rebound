@@ -100,11 +100,11 @@ export const mosaicBehavior: ShapeBehavior<MosaicState> = {
     if (speed === 0) return;
     const hitX = (ball.x / distance) * arena.radius;
     const hitY = (ball.y / distance) * arena.radius;
-    events.push('wall-hit', arenaIndex, hitX, hitY, speed);
+    events.push('wall-hit', arenaIndex, hitX, hitY, speed, ball);
     tile.hitsLeft -= 1;
     if (tile.hitsLeft > 0) return;
     tile.regrowLeft = state.regrowTicks;
-    events.push('tile-break', arenaIndex, hitX, hitY, TILE_REWARD[tile.type]);
+    events.push('tile-break', arenaIndex, hitX, hitY, TILE_REWARD[tile.type], ball);
     if (tile.type === 'spring') spring(ball, state.springSpeed);
   },
 
