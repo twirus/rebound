@@ -28,10 +28,10 @@ const allEntries: readonly Identified[] = [
 
 const allTextKeys: readonly string[] = [
   ...resources.flatMap((resource) => [resource.nameKey, resource.perSecondKey]),
-  ...shapes.map((shape) => shape.nameKey),
+  ...shapes.flatMap((shape) => [shape.nameKey, shape.descriptionKey]),
   ...branches.map((branch) => branch.nameKey),
   ...stats.map((stat) => stat.nameKey),
-  ...balls.map((ball) => ball.nameKey),
+  ...balls.flatMap((ball) => [ball.nameKey, ball.descriptionKey]),
   ...gems.flatMap((gem) => [gem.nameKey, gem.descriptionKey, gem.downsideKey]),
   ...treeNodes.flatMap((node) => [node.nameKey, node.descriptionKey]),
   ...treeGroups.map((group) => group.nameKey),

@@ -17,7 +17,7 @@ export const futureNodes: readonly TreeNodeDef[] = [
     icon: 'triangle',
     nameKey: 'node.triangle.name',
     descriptionKey: 'node.triangle.description',
-    requires: ['node:arena-size'],
+    requires: ['node:rings'],
     conditions: FUTURE,
     maxLevel: 1,
     costs: PLACEHOLDER_COST,

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { ResourceId } from '../../src/content/types';
 import { treeNodes } from '../../src/content/tree';
 import { BASE_STATS, nodePrice } from '../../src/game/balance';
 import { Game } from '../../src/game/game';
@@ -8,7 +9,7 @@ import { computeStats } from '../../src/game/stats';
 
 function richState(): GameState {
   const state = newGameState();
-  state.resources['resource:impulse'] = 1e12;
+  for (const id of Object.keys(state.resources) as ResourceId[]) state.resources[id] = 1e12;
   return state;
 }
 
@@ -148,6 +149,24 @@ describe('game', () => {
       }
     }
     expect(pushes).toBe(3);
+  });
+
+  it('switches to Rings only after they are bought', () => {
+    const game = new Game(richState(), 4);
+    expect(game.setShape('shape:rings')).toBe(false);
+    game.state.nodeLevels['node:rings'] = 1;
+    expect(game.setShape('shape:rings')).toBe(true);
+    expect(game.world.arenas[0]?.shape.kind).toBe('rings');
+  });
+
+  it('earns Shards in the Rings arena', () => {
+    const state = newGameState();
+    state.nodeLevels['node:rings'] = 1;
+    state.nodeLevels['node:ball-speed'] = 3;
+    state.arena.shape = 'shape:rings';
+    const game = new Game(state, 4);
+    for (let tick = 0; tick < 120 * 30; tick++) game.step();
+    expect(game.state.resources['resource:shards']).toBeGreaterThan(0);
   });
 
   it('repeats a tap as a weaker echo once the echo is bought', () => {

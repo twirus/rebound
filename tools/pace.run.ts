@@ -46,6 +46,8 @@ it('prints the purchase timeline', () => {
       game.buy(node.id);
       longestWait = Math.max(longestWait, second - lastPurchase);
       lines.push(`${clock(second)}  +${second - lastPurchase}s  ${node.id} → ${level}`);
+      // Rings earn Shards; the bot moves there as soon as they open.
+      if (node.unlocks?.includes('shape:rings')) game.setShape('shape:rings');
       lastPurchase = second;
       node = cheapestAffordable(game);
     }
@@ -55,6 +57,9 @@ it('prints the purchase timeline', () => {
   lines.push(
     `--- ${MINUTES} min, taps ${TAPS ? 'on' : 'off'}: ${bought}/${total} levels, longest wait ${longestWait}s`,
   );
-  lines.push(`income/s at end: ${(game.income.perSecond()['resource:impulse'] ?? 0).toFixed(1)}`);
+  const income = game.income.perSecond();
+  lines.push(
+    `income/s at end: impulse ${(income['resource:impulse'] ?? 0).toFixed(1)}, shards ${(income['resource:shards'] ?? 0).toFixed(2)}`,
+  );
   console.log(lines.join('\n'));
 }, 600_000);

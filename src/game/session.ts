@@ -1,4 +1,4 @@
-import type { NodeId } from '../content/types';
+import type { BallId, NodeId, ShapeId } from '../content/types';
 import { AUTOSAVE_SECONDS } from './balance';
 import { Game } from './game';
 import { loadState, saveState } from './save';
@@ -59,6 +59,20 @@ export function buyNode(nodeId: NodeId): boolean {
     saveNow();
   }
   return bought;
+}
+
+/** Arena panel: switch the main arena's shape. */
+export function chooseShape(shapeId: ShapeId): void {
+  if (!game.setShape(shapeId)) return;
+  publishPurchases(game);
+  saveNow();
+}
+
+/** Arena panel: switch the main arena's ball type. */
+export function chooseBall(ballId: BallId): void {
+  if (!game.setBall(ballId)) return;
+  publishPurchases(game);
+  saveNow();
 }
 
 export function tapArena(x: number, y: number): boolean {

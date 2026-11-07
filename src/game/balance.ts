@@ -17,6 +17,14 @@ export const BASE_STATS: Readonly<Record<StatId, number>> = {
   'stat:tap-reach': 0.55,
   'stat:tap-echo': 0,
   'stat:impulse-multiplier': 1,
+  /** Added to the ring count of the Rings shape. */
+  'stat:ring-count': 0,
+  /** Added to the gap width of every ring, degrees. */
+  'stat:ring-gap': 0,
+  /** Multiplies the time a broken ring needs to grow back. */
+  'stat:ring-regrow': 1,
+  'stat:shards-per-break': 1,
+  'stat:shards-per-escape': 5,
 };
 
 /** A node raising the key stat cannot be bought past the value of the mapped stat. */

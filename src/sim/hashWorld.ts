@@ -1,4 +1,5 @@
 import { StateHasher } from '../core/hash';
+import { hashShape } from './shapes';
 import type { World } from './world';
 
 /** Fingerprint of everything that affects future simulation. Used by the determinism test. */
@@ -10,6 +11,7 @@ export function hashWorld(world: World): string {
   for (const arena of world.arenas) {
     hasher.addNumber(arena.radius);
     hasher.addNumber(arena.minBounceSpeed);
+    hashShape(arena.shape, hasher);
     hasher.addNumber(arena.balls.length);
     for (const ball of arena.balls) {
       hasher.addNumber(ball.id);

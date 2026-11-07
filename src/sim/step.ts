@@ -7,5 +7,5 @@ export function stepWorld(world: World): void {
   world.tick += 1;
   world.events.clear();
   applyPendingPushes(world);
-  world.arenas.forEach((arena, arenaIndex) => stepArena(arena, arenaIndex, world.events));
+  world.arenas.forEach((arena, arenaIndex) => stepArena(arena, arenaIndex, world));
 }

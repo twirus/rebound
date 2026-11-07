@@ -15,6 +15,12 @@ const LOWPASS_HZ = 1800;
 const MASTER_GAIN = 0.7;
 const HIT_GAIN = 0.16;
 const COLLISION_GAIN = 0.06;
+const BREAK_GAIN = 0.14;
+/** Shattering rings ring an octave above hits; smaller rings sound higher. */
+const BREAK_OCTAVE_SHIFT = 12;
+const ESCAPE_GAIN = 0.12;
+/** An escape plays a rising fifth. */
+const ESCAPE_INTERVAL = 7;
 /** Impact speed that gives full volume, world units per second. */
 const LOUD_IMPACT = 900;
 const MIN_LEVEL = 0.05;
@@ -81,6 +87,13 @@ export class HitSynth {
     } else if (event.kind === 'ball-collision') {
       const across = (event.x / arenaRadius + 1) / 2;
       this.playNote(semitonesToHz(noteAt(across) + COLLISION_OCTAVE_SHIFT), COLLISION_GAIN * level);
+    } else if (event.kind === 'ring-break') {
+      const inward = 1 - event.strength / arenaRadius;
+      this.playNote(semitonesToHz(noteAt(inward) + BREAK_OCTAVE_SHIFT), BREAK_GAIN);
+    } else if (event.kind === 'escape') {
+      const base = noteAt(0) + BREAK_OCTAVE_SHIFT;
+      this.playNote(semitonesToHz(base), ESCAPE_GAIN);
+      this.playNote(semitonesToHz(base + ESCAPE_INTERVAL), ESCAPE_GAIN);
     }
   }
 

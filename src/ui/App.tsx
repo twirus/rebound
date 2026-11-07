@@ -1,4 +1,5 @@
 import { useEffect } from 'preact/hooks';
+import { ArenaPanel } from './ArenaPanel';
 import { ArenaView } from './ArenaView';
 import { BottomBar } from './BottomBar';
 import { TopBar } from './TopBar';
@@ -21,7 +22,10 @@ export function App() {
   return (
     <div class="app">
       <TopBar />
-      <ArenaView />
+      <div class="main-row">
+        <ArenaView />
+        <ArenaPanel />
+      </div>
       <BottomBar />
       {treeOpen.value && <TreeOverlay />}
     </div>

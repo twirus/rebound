@@ -4,6 +4,7 @@ import { shapes } from '../content/shapes';
 import type { BallDef, BallId, ShapeDef, ShapeId } from '../content/types';
 import { SimEventBuffer } from './events';
 import type { PushInput } from './push';
+import { createShapeState, shapeSpawnRadius, type ShapeState } from './shapes';
 
 export interface Ball {
   id: number;
@@ -22,10 +23,11 @@ export interface Ball {
 
 export interface Arena {
   shapeId: ShapeId;
-  /** Inner radius of the arena wall, world units, centre at (0, 0). */
+  /** Outer radius of the arena walls, world units, centre at (0, 0). */
   radius: number;
   /** A ball leaving a wall slower than this is kicked up to it. */
   minBounceSpeed: number;
+  shape: ShapeState;
   balls: Ball[];
 }
 
@@ -41,7 +43,7 @@ export interface World {
 const START_SHAPE: ShapeId = 'shape:circle';
 /** Horizontal launch speed range for new balls, world units per second. */
 const SPAWN_SPEED = 180;
-/** New balls appear in the upper part of the arena, within this share of the radius. */
+/** New balls appear in the upper part of the free space, within this share of its radius. */
 const SPAWN_SPREAD = 0.5;
 
 export function findShape(id: ShapeId): ShapeDef {
@@ -58,7 +60,13 @@ export function findBall(id: BallId): BallDef {
 
 export function createWorld(seed: number): World {
   const shape = findShape(START_SHAPE);
-  const arena: Arena = { shapeId: shape.id, radius: shape.radius, minBounceSpeed: 0, balls: [] };
+  const arena: Arena = {
+    shapeId: shape.id,
+    radius: shape.radius,
+    minBounceSpeed: 0,
+    shape: createShapeState(shape, shape.radius),
+    balls: [],
+  };
   return {
     tick: 0,
     rng: new Rng(seed),
@@ -69,25 +77,45 @@ export function createWorld(seed: number): World {
   };
 }
 
+function placeInSpawnArea(world: World, arena: Arena, ball: Ball): void {
+  const spread = shapeSpawnRadius(arena.shape, arena.radius) * SPAWN_SPREAD;
+  ball.x = world.rng.nextRange(-spread, spread);
+  ball.y = world.rng.nextRange(-spread, 0);
+  ball.prevX = ball.x;
+  ball.prevY = ball.y;
+}
+
 export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
   const def = findBall(typeId);
-  const spread = arena.radius * SPAWN_SPREAD;
-  const x = world.rng.nextRange(-spread, spread);
-  const y = world.rng.nextRange(-spread, 0);
   const ball: Ball = {
     id: world.nextBallId,
     typeId,
-    x,
-    y,
-    vx: world.rng.nextRange(-SPAWN_SPEED, SPAWN_SPEED),
+    x: 0,
+    y: 0,
+    vx: 0,
     vy: 0,
-    prevX: x,
-    prevY: y,
+    prevX: 0,
+    prevY: 0,
     radius: def.radius,
     mass: def.radius * def.radius,
     gravityScale: def.gravityScale,
   };
+  placeInSpawnArea(world, arena, ball);
+  ball.vx = world.rng.nextRange(-SPAWN_SPEED, SPAWN_SPEED);
   world.nextBallId += 1;
   arena.balls.push(ball);
   return ball;
+}
+
+/**
+ * Rebuilds the walls from a (possibly upgraded) shape definition. When the
+ * shape itself changes, balls are moved back into its free space.
+ */
+export function setArenaShape(world: World, arena: Arena, def: ShapeDef, radius: number): void {
+  const shapeChanged = arena.shapeId !== def.id;
+  arena.shapeId = def.id;
+  arena.radius = radius;
+  arena.shape = createShapeState(def, radius);
+  if (!shapeChanged) return;
+  for (const ball of arena.balls) placeInSpawnArea(world, arena, ball);
 }

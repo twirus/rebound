@@ -1,20 +1,32 @@
-import type { NodeId } from '../content/types';
+import type { BallId, NodeId, ResourceId, ShapeId } from '../content/types';
 import { TICK_SECONDS } from '../sim/constants';
 import { queuePush, type PushInput } from '../sim/push';
 import { stepWorld } from '../sim/step';
-import { createWorld, findShape, spawnBall, type Arena, type World } from '../sim/world';
+import {
+  createWorld,
+  findBall,
+  findShape,
+  setArenaShape,
+  spawnBall,
+  type Arena,
+  type World,
+} from '../sim/world';
 import {
   AUTO_TAP_DEPTH,
   AUTO_TAP_REACH,
   TAP_ECHO_DELAY_SECONDS,
   TAP_ECHO_STRENGTH,
 } from './balance';
+import { TickEarnings } from './earnings';
 import { IncomeTracker } from './incomeTracker';
 import { buyLevel } from './purchases';
-import type { GameState } from './state';
+import { DEFAULT_ARENA, type GameState } from './state';
+import { tunedShape } from './shapeTuning';
 import { computeStats, type Stats } from './stats';
+import { unlockedBalls, unlockedShapes } from './unlocks';
 
-const IMPULSE = 'resource:impulse';
+const IMPULSE: ResourceId = 'resource:impulse';
+const SHARDS: ResourceId = 'resource:shards';
 const MAIN_ARENA = 0;
 
 interface ScheduledPush {
@@ -30,6 +42,9 @@ export class Game {
   private lastTapTick = Number.NEGATIVE_INFINITY;
   private nextAutoTapTick = 0;
   private echo: ScheduledPush | null = null;
+  private readonly earnings = new TickEarnings();
+  /** Fingerprint of the walls last built, so purchases do not reset them needlessly. */
+  private builtShapeKey = '';
 
   constructor(
     readonly state: GameState,
@@ -37,6 +52,13 @@ export class Game {
   ) {
     this.world = createWorld(seed);
     this.stats = computeStats(state.nodeLevels);
+    // A save may point at content that is no longer unlocked; fall back rather than fail.
+    if (!unlockedShapes(state.nodeLevels).includes(state.arena.shape)) {
+      state.arena.shape = DEFAULT_ARENA.shape;
+    }
+    if (!unlockedBalls(state.nodeLevels).includes(state.arena.ball)) {
+      state.arena.ball = DEFAULT_ARENA.ball;
+    }
     this.applyStats();
   }
 
@@ -80,6 +102,28 @@ export class Game {
     return true;
   }
 
+  /** Arena panel: switch the arena to an unlocked shape. */
+  setShape(shapeId: ShapeId): boolean {
+    if (!unlockedShapes(this.state.nodeLevels).includes(shapeId)) return false;
+    this.state.arena.shape = shapeId;
+    this.applyStats();
+    return true;
+  }
+
+  /** Arena panel: switch every ball in the arena to an unlocked type. */
+  setBall(ballId: BallId): boolean {
+    if (!unlockedBalls(this.state.nodeLevels).includes(ballId)) return false;
+    this.state.arena.ball = ballId;
+    const def = findBall(ballId);
+    for (const ball of this.mainArena().balls) {
+      ball.typeId = ballId;
+      ball.radius = def.radius;
+      ball.mass = def.radius * def.radius;
+      ball.gravityScale = def.gravityScale;
+    }
+    return true;
+  }
+
   buy(nodeId: NodeId): boolean {
     if (!buyLevel(this.state, nodeId, this.stats)) return false;
     this.stats = computeStats(this.state.nodeLevels);
@@ -95,25 +139,33 @@ export class Game {
 
   private applyStats(): void {
     const arena = this.mainArena();
-    arena.radius = findShape(arena.shapeId).radius * this.stats['stat:arena-scale'];
+    this.buildShape(arena);
     arena.minBounceSpeed = this.stats['stat:min-bounce-speed'];
     while (arena.balls.length < this.stats['stat:ball-count']) {
-      spawnBall(this.world, arena, 'ball:basic');
+      spawnBall(this.world, arena, this.state.arena.ball);
     }
   }
 
+  /** Rebuilds the walls only when the shape, its upgrades or the arena size changed. */
+  private buildShape(arena: Arena): void {
+    const def = tunedShape(findShape(this.state.arena.shape), this.stats);
+    const radius = def.radius * this.stats['stat:arena-scale'];
+    const key = JSON.stringify([def, radius]);
+    if (key === this.builtShapeKey) return;
+    setArenaShape(this.world, arena, def, radius);
+    this.builtShapeKey = key;
+  }
+
   private collectIncome(): void {
-    const events = this.world.events;
-    let earned = 0;
-    for (let index = 0; index < events.count; index++) {
-      const event = events.at(index);
-      if (event.kind === 'wall-hit') earned += this.stats['stat:impulse-per-hit'];
-      else if (event.kind === 'ball-collision') earned += this.stats['stat:impulse-per-collision'];
-    }
-    if (earned === 0) return;
-    earned *= this.stats['stat:impulse-multiplier'];
-    this.state.resources[IMPULSE] = (this.state.resources[IMPULSE] ?? 0) + earned;
-    this.income.add(IMPULSE, earned);
+    this.earnings.collect(this.world.events, this.stats);
+    this.earn(IMPULSE, this.earnings.impulse);
+    this.earn(SHARDS, this.earnings.shards);
+  }
+
+  private earn(resource: ResourceId, amount: number): void {
+    if (amount === 0) return;
+    this.state.resources[resource] = (this.state.resources[resource] ?? 0) + amount;
+    this.income.add(resource, amount);
   }
 
   private runAutoTap(): void {

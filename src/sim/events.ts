@@ -1,11 +1,11 @@
-export type SimEventKind = 'wall-hit' | 'ball-collision' | 'push';
+export type SimEventKind = 'wall-hit' | 'ball-collision' | 'push' | 'ring-break' | 'escape';
 
 export interface SimEvent {
   kind: SimEventKind;
   arenaIndex: number;
   x: number;
   y: number;
-  /** Impact speed for hits and collisions, push strength for pushes. */
+  /** Impact speed for hits and collisions, reach for pushes, ring radius for breaks. */
   strength: number;
 }
 

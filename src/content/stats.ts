@@ -15,4 +15,9 @@ export const stats: readonly StatDef[] = [
   { id: 'stat:tap-reach', nameKey: 'stat.tap-reach.name' },
   { id: 'stat:tap-echo', nameKey: 'stat.tap-echo.name' },
   { id: 'stat:impulse-multiplier', nameKey: 'stat.impulse-multiplier.name' },
+  { id: 'stat:ring-count', nameKey: 'stat.ring-count.name' },
+  { id: 'stat:ring-gap', nameKey: 'stat.ring-gap.name' },
+  { id: 'stat:ring-regrow', nameKey: 'stat.ring-regrow.name' },
+  { id: 'stat:shards-per-break', nameKey: 'stat.shards-per-break.name' },
+  { id: 'stat:shards-per-escape', nameKey: 'stat.shards-per-escape.name' },
 ];

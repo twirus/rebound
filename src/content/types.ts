@@ -34,18 +34,38 @@ export interface ResourceDef {
   color: string;
 }
 
+/** Which wall behaviour in sim/shapes/ runs the shape. */
+export type ShapeKind = 'circle' | 'rings';
+
+/** Nested rotating rings with one gap each; see sim/shapes/rings.ts. */
+export interface RingsParams {
+  count: number;
+  /** Radius of the innermost ring as a share of the arena radius. */
+  innerShare: number;
+  gapDegrees: number;
+  /** Rotation of the innermost ring; neighbours alternate direction and spin faster. */
+  degreesPerSecond: number;
+  /** Each next ring outward spins this share faster. */
+  speedStep: number;
+  regrowSeconds: number;
+}
+
 export interface ShapeDef {
   id: ShapeId;
+  kind: ShapeKind;
   nameKey: TextKey;
+  descriptionKey: TextKey;
   tags: readonly Tag[];
   resource: ResourceId;
   /** Arena radius in world units. */
   radius: number;
+  rings?: RingsParams;
 }
 
 export interface BallDef {
   id: BallId;
   nameKey: TextKey;
+  descriptionKey: TextKey;
   tags: readonly Tag[];
   /** Ball radius in world units. */
   radius: number;
@@ -90,7 +110,12 @@ export type StatId =
   | 'stat:auto-tap-power'
   | 'stat:tap-reach'
   | 'stat:tap-echo'
-  | 'stat:impulse-multiplier';
+  | 'stat:impulse-multiplier'
+  | 'stat:ring-count'
+  | 'stat:ring-gap'
+  | 'stat:ring-regrow'
+  | 'stat:shards-per-break'
+  | 'stat:shards-per-escape';
 
 /** Price of level L is ceil(base × growth^L). */
 export interface NodeCost {
@@ -157,6 +182,8 @@ export interface TreeNodeDef {
   /** 'all' (default) — every requirement bought; 'any' — at least one. */
   requiresMode?: 'all' | 'any';
   conditions?: readonly NodeCondition[];
+  /** Shapes and ball types that become selectable in the arena panel once bought. */
+  unlocks?: readonly (ShapeId | BallId)[];
   maxLevel: number;
   costs: readonly NodeCost[];
   effects: readonly StatModifier[];

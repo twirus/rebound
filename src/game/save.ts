@@ -1,6 +1,8 @@
+import { balls } from '../content/balls';
 import { resources } from '../content/resources';
+import { shapes } from '../content/shapes';
 import { treeNodes } from '../content/tree';
-import { newGameState, type GameState } from './state';
+import { newGameState, type ArenaSetup, type GameState } from './state';
 
 const SAVE_KEY = 'rebound.save';
 /** A save that failed to load is kept here instead of being overwritten. */
@@ -31,6 +33,14 @@ function migrate(data: Record<string, unknown>): Record<string, unknown> {
   return current;
 }
 
+/** Unknown shape or ball ids (removed content) fall back to the defaults. */
+function readArena(data: unknown, fallback: ArenaSetup): ArenaSetup {
+  if (!isRecord(data)) return fallback;
+  const shape = shapes.find((candidate) => candidate.id === data.shape);
+  const ball = balls.find((candidate) => candidate.id === data.ball);
+  return { shape: shape?.id ?? fallback.shape, ball: ball?.id ?? fallback.ball };
+}
+
 /** Keeps known ids with sane values; unknown ids (removed content) are dropped. */
 function readState(data: Record<string, unknown>): GameState {
   const state = newGameState();
@@ -48,6 +58,7 @@ function readState(data: Record<string, unknown>): GameState {
       state.nodeLevels[node.id] = Math.min(level, node.maxLevel);
     }
   }
+  state.arena = readArena(data.arena, state.arena);
   return state;
 }
 

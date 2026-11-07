@@ -1,6 +1,8 @@
 import type { Arena, World } from '../sim/world';
 import { findBall } from '../sim/world';
 import { PushRings } from './pushRings';
+import { drawShapeWalls } from './shapeWalls';
+import { ShardBursts } from './shardBursts';
 
 const WALL_WIDTH_PX = 1.5;
 const WALL_ALPHA = 0.85;
@@ -27,6 +29,7 @@ export class ArenaRenderer {
   private readonly context: CanvasRenderingContext2D;
   private readonly colors: ThemeColors;
   private readonly pushRings = new PushRings();
+  private readonly shardBursts = new ShardBursts();
   private cssWidth = 0;
   private cssHeight = 0;
 
@@ -48,7 +51,9 @@ export class ArenaRenderer {
 
   /** Call after every simulation step: events live for one tick only. */
   collectEvents(world: World): void {
-    this.pushRings.collect(world, MAIN_ARENA, performance.now());
+    const now = performance.now();
+    this.pushRings.collect(world, MAIN_ARENA, now);
+    this.shardBursts.collect(world, MAIN_ARENA, now);
   }
 
   /** Converts a point in CSS pixels (relative to the canvas) to arena coordinates. */
@@ -80,9 +85,7 @@ export class ArenaRenderer {
     context.globalAlpha = WALL_ALPHA;
     context.strokeStyle = this.colors.wall;
     context.lineWidth = WALL_WIDTH_PX / scale;
-    context.beginPath();
-    context.arc(0, 0, arena.radius, 0, FULL_TURN);
-    context.stroke();
+    drawShapeWalls(context, arena);
     context.globalAlpha = 1;
 
     for (const ball of arena.balls) {
@@ -93,7 +96,9 @@ export class ArenaRenderer {
       context.arc(x, y, ball.radius, 0, FULL_TURN);
       context.fill();
     }
-    this.pushRings.draw(context, this.colors.wall, scale, performance.now());
+    const now = performance.now();
+    this.shardBursts.draw(context, this.colors.wall, scale, now);
+    this.pushRings.draw(context, this.colors.wall, scale, now);
     context.restore();
   }
 }
