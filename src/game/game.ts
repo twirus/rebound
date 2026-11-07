@@ -1,8 +1,9 @@
 import { resources } from '../content/resources';
-import type { BallId, NodeId, ResourceId, ShapeId } from '../content/types';
+import type { BallId, GemId, NodeId, ResourceId, ShapeId } from '../content/types';
 import { TICK_SECONDS } from '../sim/constants';
 import { queuePush, type PushInput } from '../sim/push';
 import { applyBallType, clearBallState } from '../sim/ball';
+import { setArenaSchemes } from '../sim/gems';
 import { stepWorld } from '../sim/step';
 import {
   createWorld,
@@ -21,6 +22,14 @@ import {
   TAP_ECHO_STRENGTH,
 } from './balance';
 import { TickEarnings } from './earnings';
+import {
+  clearSlot,
+  placeGem,
+  placeProblem,
+  schemeSpecs,
+  type GemSlotRef,
+  type PlaceProblem,
+} from './gemRules';
 import { IncomeTracker } from './incomeTracker';
 import { buyLevel } from './purchases';
 import { DEFAULT_ARENA, type GameState } from './state';
@@ -47,6 +56,8 @@ export class Game {
   private readonly earnings = new TickEarnings();
   /** Fingerprint of the walls last built, so purchases do not reset them needlessly. */
   private builtShapeKey = '';
+  /** Fingerprint of the schemes last sent to the arena, so cooldowns survive unrelated changes. */
+  private builtSchemesKey = '';
 
   constructor(
     readonly state: GameState,
@@ -112,6 +123,20 @@ export class Game {
     return true;
   }
 
+  /** Arena panel: put a gem into a slot (moving it from wherever it was). */
+  placeGem(slot: GemSlotRef, gemId: GemId): PlaceProblem | null {
+    const problem = placeProblem(this.state.arena, slot, gemId, this.state.nodeLevels, this.stats);
+    if (problem) return problem;
+    placeGem(this.state.arena, slot, gemId);
+    this.buildSchemes();
+    return null;
+  }
+
+  clearGemSlot(slot: GemSlotRef): void {
+    clearSlot(this.state.arena, slot);
+    this.buildSchemes();
+  }
+
   /** Arena panel: switch every ball in the arena to an unlocked type. */
   setBall(ballId: BallId): boolean {
     if (!unlockedBalls(this.state.nodeLevels).includes(ballId)) return false;
@@ -140,6 +165,7 @@ export class Game {
   private applyStats(): void {
     const arena = this.mainArena();
     this.buildShape(arena);
+    this.buildSchemes();
     arena.minBounceSpeed = this.stats['stat:min-bounce-speed'];
     const shapeLimit = findShape(this.state.arena.shape).maxBalls ?? Number.POSITIVE_INFINITY;
     const wanted = Math.min(this.stats['stat:ball-count'], shapeLimit);
@@ -150,6 +176,14 @@ export class Game {
     while (permanentBallCount(arena) < wanted) {
       spawnBall(this.world, arena, this.state.arena.ball);
     }
+  }
+
+  private buildSchemes(): void {
+    const specs = schemeSpecs(this.state.arena, this.stats);
+    const key = JSON.stringify(specs);
+    if (key === this.builtSchemesKey) return;
+    setArenaSchemes(this.mainArena(), specs);
+    this.builtSchemesKey = key;
   }
 
   /** Rebuilds the walls only when the shape, its upgrades or the arena size changed. */

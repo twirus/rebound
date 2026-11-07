@@ -2,7 +2,15 @@ import { balls } from '../content/balls';
 import { resources } from '../content/resources';
 import { shapes } from '../content/shapes';
 import { treeNodes } from '../content/tree';
-import { newGameState, type ArenaSetup, type GameState } from './state';
+import { gems } from '../content/gems';
+import type { GemId } from '../content/types';
+import {
+  emptySchemeSlot,
+  newGameState,
+  type ArenaSetup,
+  type GameState,
+  type SchemeSlot,
+} from './state';
 
 const SAVE_KEY = 'rebound.save';
 /** A save that failed to load is kept here instead of being overwritten. */
@@ -34,11 +42,26 @@ function migrate(data: Record<string, unknown>): Record<string, unknown> {
 }
 
 /** Unknown shape or ball ids (removed content) fall back to the defaults. */
+function readGem(value: unknown): GemId | null {
+  return gems.find((gem) => gem.id === value)?.id ?? null;
+}
+
+function readScheme(data: unknown): SchemeSlot {
+  if (!isRecord(data)) return emptySchemeSlot();
+  const supports = Array.isArray(data.supports) ? data.supports.map(readGem) : [];
+  return { event: readGem(data.event), effect: readGem(data.effect), supports };
+}
+
 function readArena(data: unknown, fallback: ArenaSetup): ArenaSetup {
   if (!isRecord(data)) return fallback;
   const shape = shapes.find((candidate) => candidate.id === data.shape);
   const ball = balls.find((candidate) => candidate.id === data.ball);
-  return { shape: shape?.id ?? fallback.shape, ball: ball?.id ?? fallback.ball };
+  return {
+    shape: shape?.id ?? fallback.shape,
+    ball: ball?.id ?? fallback.ball,
+    schemes: Array.isArray(data.schemes) ? data.schemes.map(readScheme) : [],
+    law: readGem(data.law),
+  };
 }
 
 /** Keeps known ids with sane values; unknown ids (removed content) are dropped. */

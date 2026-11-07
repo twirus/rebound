@@ -316,7 +316,11 @@ export type StatId =
   | 'stat:mass-per-waiting-ball'
   | 'stat:tile-durability'
   | 'stat:spiral-pull'
-  | 'stat:charge-seconds';
+  | 'stat:charge-seconds'
+  | 'stat:scheme-slots'
+  | 'stat:support-slots'
+  | 'stat:gem-load'
+  | 'stat:law-slots';
 
 /** Price of level L is ceil(base × growth^L). */
 export interface NodeCost {
@@ -383,8 +387,8 @@ export interface TreeNodeDef {
   /** 'all' (default) — every requirement bought; 'any' — at least one. */
   requiresMode?: 'all' | 'any';
   conditions?: readonly NodeCondition[];
-  /** Shapes and ball types that become selectable in the arena panel once bought. */
-  unlocks?: readonly (ShapeId | BallId)[];
+  /** Shapes, ball types and gems that become available once bought. */
+  unlocks?: readonly (ShapeId | BallId | GemId)[];
   maxLevel: number;
   costs: readonly NodeCost[];
   effects: readonly StatModifier[];

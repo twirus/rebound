@@ -34,4 +34,8 @@ export const stats: readonly StatDef[] = [
   { id: 'stat:tile-durability', nameKey: 'stat.tile-durability.name' },
   { id: 'stat:spiral-pull', nameKey: 'stat.spiral-pull.name' },
   { id: 'stat:charge-seconds', nameKey: 'stat.charge-seconds.name' },
+  { id: 'stat:scheme-slots', nameKey: 'stat.scheme-slots.name' },
+  { id: 'stat:support-slots', nameKey: 'stat.support-slots.name' },
+  { id: 'stat:gem-load', nameKey: 'stat.gem-load.name' },
+  { id: 'stat:law-slots', nameKey: 'stat.law-slots.name' },
 ];

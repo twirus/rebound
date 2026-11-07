@@ -47,6 +47,14 @@ export const BASE_STATS: Readonly<Record<StatId, number>> = {
   'stat:spiral-pull': 1,
   /** Added to how long a ball charges in a star ray. */
   'stat:charge-seconds': 0,
+  /** Scheme rows the arena has. */
+  'stat:scheme-slots': 0,
+  /** Support gems each scheme can hold. */
+  'stat:support-slots': 0,
+  /** How much gem load the arena carries. */
+  'stat:gem-load': 10,
+  /** Law gems the arena can hold. */
+  'stat:law-slots': 0,
 };
 
 /** A node raising the key stat cannot be bought past the value of the mapped stat. */

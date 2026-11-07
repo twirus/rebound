@@ -16,7 +16,7 @@ export const incomePerSecond = signal<ResourceTable>(emptyResources());
 export const nodeLevels = signal<NodeLevels>({});
 export const currentStats = signal<Stats>(computeStats({}));
 export const tapCooldownLeft = signal(0);
-export const arenaSetup = signal<ArenaSetup>(DEFAULT_ARENA);
+export const arenaSetup = signal<ArenaSetup>({ ...DEFAULT_ARENA, schemes: [] });
 
 /** Resources worth showing: produced by an unlocked shape or already owned. */
 export const shownResources = computed(() =>
@@ -32,6 +32,6 @@ export function publish(game: Game): void {
 export function publishPurchases(game: Game): void {
   nodeLevels.value = { ...game.state.nodeLevels };
   currentStats.value = game.currentStats;
-  arenaSetup.value = { ...game.state.arena };
+  arenaSetup.value = structuredClone(game.state.arena);
   publish(game);
 }

@@ -114,7 +114,7 @@ describe('buying', () => {
 
   it('never sells content of a later version', () => {
     const state = richState();
-    const future = findNode('node:gem-slot');
+    const future = findNode('node:second-arena');
     for (const id of future.requires) state.nodeLevels[id] = 1;
     expect(nodeStatus(future, state.nodeLevels, computeStats(state.nodeLevels))).toBe('hidden');
     expect(buyLevel(state, future.id, computeStats(state.nodeLevels))).toBe(false);

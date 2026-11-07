@@ -1,4 +1,5 @@
-import type { BallId, NodeId, ShapeId } from '../content/types';
+import type { BallId, GemId, NodeId, ShapeId } from '../content/types';
+import type { GemSlotRef, PlaceProblem } from './gemRules';
 import { AUTOSAVE_SECONDS } from './balance';
 import { Game } from './game';
 import { loadState, saveState } from './save';
@@ -71,6 +72,22 @@ export function chooseShape(shapeId: ShapeId): void {
 /** Arena panel: switch the main arena's ball type. */
 export function chooseBall(ballId: BallId): void {
   if (!game.setBall(ballId)) return;
+  publishPurchases(game);
+  saveNow();
+}
+
+/** Arena panel: returns why the gem did not fit, or null when it was placed. */
+export function placeGemInSlot(slot: GemSlotRef, gemId: GemId): PlaceProblem | null {
+  const problem = game.placeGem(slot, gemId);
+  if (!problem) {
+    publishPurchases(game);
+    saveNow();
+  }
+  return problem;
+}
+
+export function clearGemSlot(slot: GemSlotRef): void {
+  game.clearGemSlot(slot);
   publishPurchases(game);
   saveNow();
 }

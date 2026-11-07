@@ -122,6 +122,20 @@ describe('content', () => {
     expect(empty.map((group) => group.id)).toEqual([]);
   });
 
+  it('lets the tree unlock every gem', () => {
+    const unlocked = new Set(treeNodes.flatMap((node) => node.unlocks ?? []));
+    expect(gems.filter((gem) => !unlocked.has(gem.id)).map((gem) => gem.id)).toEqual([]);
+  });
+
+  it('gives every event gem something to listen to and every effect a cooldown', () => {
+    const invalid = gems.filter(
+      (gem) =>
+        (gem.kind === 'event' && (gem.listensTo ?? []).length === 0) ||
+        (gem.kind === 'effect' && (gem.cooldownSeconds ?? 0) <= 0),
+    );
+    expect(invalid.map((gem) => gem.id)).toEqual([]);
+  });
+
   it('has no cycles in the tree', () => {
     expect(findCycleNodes(treeNodes)).toEqual([]);
   });
