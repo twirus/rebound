@@ -24,7 +24,8 @@ export type Tag =
   | 'merge'
   | 'cold'
   | 'heat'
-  | 'control';
+  | 'control'
+  | 'size';
 
 export interface ResourceDef {
   id: ResourceId;
@@ -209,16 +210,67 @@ export interface BallDef {
   params?: BallParams;
 }
 
+/** Everything the simulation reports; event gems listen for these by name. */
+export type SimEventKind =
+  | 'wall-hit'
+  | 'ball-collision'
+  | 'push'
+  | 'ring-break'
+  | 'escape'
+  | 'round-reset'
+  | 'corner-hit'
+  | 'split'
+  | 'portal'
+  | 'combo'
+  | 'tile-break'
+  | 'core-reach'
+  | 'merge'
+  | 'launch'
+  | 'unstick'
+  | 'vanish'
+  | 'hatch'
+  | 'spawn'
+  | 'recolor'
+  | 'streak'
+  | 'center'
+  | 'stall'
+  | 'max-speed'
+  | 'max-size'
+  | 'quiet'
+  | 'beam';
+
 export type GemKind = 'event' | 'effect' | 'support' | 'condition' | 'law' | 'link';
+
+/** Numbers a gem works with; each gem uses only its own (see sim/gems/). */
+export interface GemParams {
+  /** Push speed, pull speed, growth share and similar effect sizes. */
+  strength?: number;
+  /** Reach of the effect, world units. */
+  radius?: number;
+  /** How long the effect lasts. */
+  seconds?: number;
+  /** How many: balls, jumps, firings. */
+  count?: number;
+  /** Multiplier the gem applies (power, reward, cooldown). */
+  multiplier?: number;
+  /** A second multiplier, for the downside of supports. */
+  penalty?: number;
+}
 
 export interface GemDef {
   id: GemId;
   kind: GemKind;
   nameKey: TextKey;
   descriptionKey: TextKey;
+  /** Every gem has a catch; for events and effects it is their load. */
   downsideKey: TextKey;
   tags: readonly Tag[];
   load: number;
+  /** Event gems: the simulation events that trigger the scheme. */
+  listensTo?: readonly SimEventKind[];
+  /** Effect gems: seconds before the scheme may fire again. */
+  cooldownSeconds?: number;
+  params?: GemParams;
 }
 
 export type BranchId = `branch:${string}`;

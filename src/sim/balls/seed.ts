@@ -24,6 +24,7 @@ export const seedBehavior: BallBehavior = {
       const vy = ball.vx * turnSin + ball.vy * turnCos;
       const hatchling = spawnClone(world, arena, ball, vx, vy, lifeTicks, count * HATCHES_ALIVE);
       if (!hatchling) break;
+      events.push('spawn', arenaIndex, hatchling.x, hatchling.y, 0, hatchling);
       hatchling.radius *= params.hatchScale ?? 1;
       hatchling.mass = hatchling.radius * hatchling.radius;
     }

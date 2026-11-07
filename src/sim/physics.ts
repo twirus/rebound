@@ -3,6 +3,8 @@ import { BASE_GRAVITY, MAX_SUBSTEPS, MAX_TRAVEL_PER_SUBSTEP, TICK_SECONDS } from
 import { BallStatus } from './ball';
 import { afterWallContact, tickBalls } from './balls';
 import { isStill } from './balls/status';
+import { runSchemes } from './gems/runner';
+import { detectTriggers } from './triggers';
 import { collideShape, stepShape, type ShapeContext } from './shapes';
 import { expireClones, type Arena, type Ball, type World } from './world';
 
@@ -31,8 +33,13 @@ function substepCount(arena: Arena): number {
   return Math.min(MAX_SUBSTEPS, Math.max(1, Math.ceil(maxTravelRatio)));
 }
 
+/** Gravity for each direction: down, left, up, right. */
+const GRAVITY_X = [0, -1, 0, 1];
+const GRAVITY_Y = [1, 0, -1, 0];
+
 export function stepArena(arena: Arena, arenaIndex: number, world: World): void {
   const context: ShapeContext = { world, arena, arenaIndex, events: world.events, rng: world.rng };
+  const firstEvent = world.events.count;
   stepShape(arena.shape, context);
   for (const ball of arena.balls) {
     ball.prevX = ball.x;
@@ -44,7 +51,9 @@ export function stepArena(arena: Arena, arenaIndex: number, world: World): void 
     for (const ball of arena.balls) {
       if (isStill(ball)) continue;
       // Semi-implicit Euler: velocity first keeps the bounce energy stable.
-      ball.vy += BASE_GRAVITY * arena.gravity * ball.gravityScale * dt;
+      const pull = BASE_GRAVITY * arena.gravity * ball.gravityScale * dt;
+      ball.vx += pull * (GRAVITY_X[arena.gravityDirection] ?? 0);
+      ball.vy += pull * (GRAVITY_Y[arena.gravityDirection] ?? 1);
       ball.x += ball.vx * dt;
       ball.y += ball.vy * dt;
     }
@@ -59,5 +68,7 @@ export function stepArena(arena: Arena, arenaIndex: number, world: World): void 
     }
   }
   tickBalls(context);
+  detectTriggers(context, firstEvent);
+  runSchemes(context, firstEvent);
   expireClones(arena);
 }

@@ -12,6 +12,13 @@ export function hashWorld(world: World): string {
     hasher.addNumber(arena.radius);
     hasher.addNumber(arena.minBounceSpeed);
     hasher.addNumber(arena.gravity);
+    hasher.addNumber(arena.gravityDirection);
+    hasher.addNumber(arena.quietTicks);
+    for (const scheme of arena.schemes) {
+      hasher.addNumber(scheme.cooldownLeft);
+      hasher.addNumber(scheme.fired);
+      hasher.addNumber(scheme.charge);
+    }
     hashShape(arena.shape, hasher);
     hasher.addNumber(arena.balls.length);
     for (const ball of arena.balls) {

@@ -3,6 +3,7 @@ import { shapes } from '../content/shapes';
 import type { BallId, ShapeDef, ShapeId } from '../content/types';
 import { applyBallType, clearBallState, newBall, type Ball } from './ball';
 import { SimEventBuffer } from './events';
+import type { Scheme } from './gems/scheme';
 import type { PushInput } from './push';
 import { createShapeState, shapeSpawnRadius, type ShapeState } from './shapes';
 
@@ -12,8 +13,14 @@ export interface Arena {
   radius: number;
   /** A ball leaving a wall slower than this is kicked up to it. */
   minBounceSpeed: number;
-  /** Multiplier on downward gravity, from the shape. */
+  /** Multiplier on gravity, from the shape. */
   gravity: number;
+  /** Which way gravity pulls: 0 down, 1 left, 2 up, 3 right (gems can turn it). */
+  gravityDirection: number;
+  /** Ticks since the last wall hit, for the "quiet" trigger. */
+  quietTicks: number;
+  /** Gem schemes running in this arena, in slot order. */
+  schemes: Scheme[];
   shape: ShapeState;
   balls: Ball[];
 }
@@ -49,6 +56,9 @@ export function createWorld(seed: number): World {
     radius: shape.radius,
     minBounceSpeed: 0,
     gravity: shape.gravity ?? 1,
+    gravityDirection: 0,
+    quietTicks: 0,
+    schemes: [],
     shape: createShapeState(shape, shape.radius),
     balls: [],
   };

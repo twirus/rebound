@@ -27,6 +27,8 @@ export interface Ball {
   prevX: number;
   prevY: number;
   radius: number;
+  /** Radius of the type in this shape, before gem growth or shrinking. */
+  baseRadius: number;
   mass: number;
   gravityScale: number;
   maxSpeed: number;
@@ -54,6 +56,9 @@ export interface Ball {
   /** Velocity to resume with when a stuck ball comes free. */
   storedVx: number;
   storedVy: number;
+  /** Already reported as nearly stopped / at top speed; cleared once it recovers. */
+  slow: boolean;
+  fast: boolean;
 }
 
 export function findBall(id: BallId): BallDef {
@@ -69,6 +74,7 @@ export function applyBallType(ball: Ball, typeId: BallId, sizeScale: number): vo
   ball.typeId = typeId;
   ball.kind = def.kind;
   ball.radius = radius;
+  ball.baseRadius = radius;
   ball.mass = radius * radius;
   ball.gravityScale = def.gravityScale;
   ball.maxSpeed = MAX_BALL_SPEED * (def.speedScale ?? 1);
@@ -88,6 +94,7 @@ export function newBall(id: number, typeId: BallId, sizeScale: number): Ball {
     prevX: 0,
     prevY: 0,
     radius: 0,
+    baseRadius: 0,
     mass: 0,
     gravityScale: 0,
     maxSpeed: MAX_BALL_SPEED,
@@ -104,9 +111,17 @@ export function newBall(id: number, typeId: BallId, sizeScale: number): Ball {
     heat: 0,
     storedVx: 0,
     storedVy: 0,
+    slow: false,
+    fast: false,
   };
   applyBallType(ball, typeId, sizeScale);
   return ball;
+}
+
+/** Sets the ball's radius to `factor` × its base radius; mass follows. */
+export function resizeBall(ball: Ball, factor: number): void {
+  ball.radius = ball.baseRadius * factor;
+  ball.mass = ball.radius * ball.radius;
 }
 
 /** Clears everything a shape or another ball did to the ball. */

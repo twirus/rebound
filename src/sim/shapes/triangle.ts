@@ -56,6 +56,7 @@ export const triangleBehavior: ShapeBehavior<TriangleState> = {
         state.maxClones,
       );
       if (!clone) continue;
+      events.push('spawn', arenaIndex, clone.x, clone.y, 0, clone);
       ball.vx = vx * SPLIT_COS + vy * SPLIT_SIN;
       ball.vy = -vx * SPLIT_SIN + vy * SPLIT_COS;
       events.push('split', arenaIndex, ball.x, ball.y, 0, ball);

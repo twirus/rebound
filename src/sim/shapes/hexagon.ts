@@ -10,6 +10,8 @@ export interface HexagonState {
 }
 
 const contact: SideContact = { x: 0, y: 0, along: 0, speed: 0 };
+/** Hits in a row on one colour that count as a "streak" for event gems. */
+const STREAK_LENGTH = 5;
 
 /**
  * Six sides in a few colours, opposite sides alike. A ball takes the colour of the side it hits;
@@ -39,6 +41,10 @@ export const hexagonBehavior: ShapeBehavior<HexagonState> = {
       } else {
         ball.tint = color;
         ball.streak = 1;
+        events.push('recolor', arenaIndex, contact.x, contact.y, color, ball);
+      }
+      if (ball.streak === STREAK_LENGTH) {
+        events.push('streak', arenaIndex, contact.x, contact.y, ball.streak, ball);
       }
       if (ball.streak >= state.comboLength) {
         events.push('combo', arenaIndex, contact.x, contact.y, ball.streak, ball);

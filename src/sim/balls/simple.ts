@@ -35,10 +35,11 @@ export const bouncyBehavior: BallBehavior = {
 
 /** Takes the next colour on every hit. */
 export const chameleonBehavior: BallBehavior = {
-  onWallHit(ball, params) {
+  onWallHit(ball, params, { arenaIndex, events }) {
     const colors = params.colorCount ?? 1;
     ball.tint = (ball.tint + 1 + colors) % colors;
     ball.streak = 0;
+    events.push('recolor', arenaIndex, ball.x, ball.y, ball.tint, ball);
   },
 };
 

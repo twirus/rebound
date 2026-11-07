@@ -1,23 +1,7 @@
-import type { BallId } from '../content/types';
+import type { BallId, SimEventKind } from '../content/types';
 import type { Ball } from './world';
-export type SimEventKind =
-  | 'wall-hit'
-  | 'ball-collision'
-  | 'push'
-  | 'ring-break'
-  | 'escape'
-  | 'round-reset'
-  | 'corner-hit'
-  | 'split'
-  | 'portal'
-  | 'combo'
-  | 'tile-break'
-  | 'core-reach'
-  | 'merge'
-  | 'launch'
-  | 'unstick'
-  | 'vanish'
-  | 'hatch';
+
+export type { SimEventKind } from '../content/types';
 
 export interface SimEvent {
   kind: SimEventKind;
@@ -26,8 +10,13 @@ export interface SimEvent {
   y: number;
   /** Impact speed for hits and collisions, reach for pushes, ring radius for breaks. */
   strength: number;
-  /** Type of the ball that caused the event, null when no single ball did. */
+  /** The ball that caused the event, −1 and null when no single ball did. */
+  ballId: number;
   ballType: BallId | null;
+  /** 0 for things that just happened; n for the n-th link of a gem chain. */
+  depth: number;
+  /** Index of the arena scheme whose effect caused the event, −1 for none. */
+  scheme: number;
 }
 
 /**
@@ -37,6 +26,9 @@ export interface SimEvent {
 export class SimEventBuffer {
   private readonly items: SimEvent[] = [];
   count = 0;
+  /** Chain depth and scheme stamped on events pushed while a gem effect runs. */
+  depth = 0;
+  scheme = -1;
 
   push(
     kind: SimEventKind,
@@ -46,19 +38,30 @@ export class SimEventBuffer {
     strength: number,
     ball: Ball | null = null,
   ): void {
-    const ballType = ball ? ball.typeId : null;
     let event = this.items[this.count];
     if (!event) {
-      event = { kind, arenaIndex, x, y, strength, ballType };
+      event = {
+        kind,
+        arenaIndex,
+        x,
+        y,
+        strength,
+        ballId: -1,
+        ballType: null,
+        depth: 0,
+        scheme: -1,
+      };
       this.items.push(event);
-    } else {
-      event.kind = kind;
-      event.arenaIndex = arenaIndex;
-      event.x = x;
-      event.y = y;
-      event.strength = strength;
-      event.ballType = ballType;
     }
+    event.kind = kind;
+    event.arenaIndex = arenaIndex;
+    event.x = x;
+    event.y = y;
+    event.strength = strength;
+    event.ballId = ball ? ball.id : -1;
+    event.ballType = ball ? ball.typeId : null;
+    event.depth = this.depth;
+    event.scheme = this.scheme;
     this.count += 1;
   }
 
@@ -70,5 +73,7 @@ export class SimEventBuffer {
 
   clear(): void {
     this.count = 0;
+    this.depth = 0;
+    this.scheme = -1;
   }
 }
