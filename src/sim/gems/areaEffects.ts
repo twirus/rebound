@@ -3,9 +3,6 @@ import { startStatus } from '../balls/status';
 import { pushAround } from '../push';
 import type { EffectHandler } from './target';
 
-/** Ways gravity can point; a turn moves to the next one. */
-const GRAVITY_DIRECTIONS = 4;
-
 export const blast: EffectHandler = (target, params, { arena }) => {
   pushAround(arena, target.x, target.y, (params.strength ?? 0) * target.power, params.radius ?? 0);
 };
@@ -39,7 +36,10 @@ export const charge: EffectHandler = (target, params, context) => {
 };
 
 export const gravityTurn: EffectHandler = (_target, _params, { arena }) => {
-  arena.gravityDirection = (arena.gravityDirection + 1) % GRAVITY_DIRECTIONS;
+  // A quarter turn clockwise on screen: down becomes left, left becomes up.
+  const { gravityX, gravityY } = arena;
+  arena.gravityX = -gravityY;
+  arena.gravityY = gravityX;
 };
 
 /** Plays the arena's previous event again, so every scheme hooked to it fires once more. */

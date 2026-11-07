@@ -128,7 +128,8 @@ describe('effect gems', () => {
   });
 
   it('gravity turn rotates gravity by a quarter', () => {
-    expect(fire('gem:gravity-turn').arena.gravityDirection).toBe(1);
+    const { arena } = fire('gem:gravity-turn');
+    expect([arena.gravityX, arena.gravityY]).toEqual([-1, 0]);
   });
 
   it('repeat plays the previous event again', () => {

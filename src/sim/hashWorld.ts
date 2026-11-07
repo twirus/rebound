@@ -12,7 +12,8 @@ export function hashWorld(world: World): string {
     hasher.addNumber(arena.radius);
     hasher.addNumber(arena.minBounceSpeed);
     hasher.addNumber(arena.gravity);
-    hasher.addNumber(arena.gravityDirection);
+    hasher.addNumber(arena.gravityX);
+    hasher.addNumber(arena.gravityY);
     hasher.addNumber(arena.quietTicks);
     for (const scheme of arena.schemes) {
       hasher.addNumber(scheme.cooldownLeft);
@@ -22,6 +23,7 @@ export function hashWorld(world: World): string {
       hasher.addNumber(scheme.triggers);
     }
     hasher.addNumber(arena.pendingEffects.length);
+    hasher.addNumber(arena.entropy);
     hashShape(arena.shape, hasher);
     hasher.addNumber(arena.balls.length);
     for (const ball of arena.balls) {

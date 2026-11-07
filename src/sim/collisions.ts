@@ -1,4 +1,5 @@
 import { afterTouch } from './balls';
+import { lawTouch } from './gems/laws';
 import type { ShapeContext } from './shapes';
 import { SpatialGrid } from './spatialGrid';
 import type { Ball } from './world';
@@ -77,6 +78,7 @@ export function collideBalls(context: ShapeContext): void {
               const midY = (ball.y + otherBall.y) / 2;
               events.push('ball-collision', arenaIndex, midX, midY, speed);
               afterTouch(ball, otherBall, context);
+              lawTouch(ball, otherBall, context);
             }
           }
           other = grid.nextAfter(other);

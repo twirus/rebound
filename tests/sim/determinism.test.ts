@@ -10,7 +10,7 @@ const BALLS = 40;
  * Reference fingerprint. If a deliberate simulation change alters it, update it
  * in the same commit and say so in the commit message.
  */
-const REFERENCE_HASH = '597efd72';
+const REFERENCE_HASH = '61d27b45';
 
 function runWorld(seed: number): string {
   const { world, arena } = worldWithBalls(seed, BALLS);

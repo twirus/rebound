@@ -1,3 +1,4 @@
+import type { GemId } from '../../content/types';
 import type { Arena } from '../world';
 import { compileScheme, findGem, type SchemeSpec } from './scheme';
 
@@ -19,4 +20,11 @@ export function setArenaSchemes(arena: Arena, specs: readonly SchemeSpec[]): voi
   });
   arena.schemes = schemes;
   arena.pendingEffects = [];
+}
+
+/** Puts a law in force in the arena (or none); entropy starts from nothing. */
+export function setArenaLaw(arena: Arena, law: GemId | null): void {
+  if (arena.law === law) return;
+  arena.law = law;
+  arena.entropy = 0;
 }

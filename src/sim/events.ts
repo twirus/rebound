@@ -13,6 +13,8 @@ export interface SimEvent {
   /** The ball that caused the event, −1 and null when no single ball did. */
   ballId: number;
   ballType: BallId | null;
+  /** Heat of that ball when it happened (thermodynamics pays more for hot balls). */
+  heat: number;
   /** 0 for things that just happened; n for the n-th link of a gem chain. */
   depth: number;
   /** Index of the arena scheme whose effect caused the event, −1 for none. */
@@ -48,6 +50,7 @@ export class SimEventBuffer {
         strength,
         ballId: -1,
         ballType: null,
+        heat: 0,
         depth: 0,
         scheme: -1,
       };
@@ -60,6 +63,7 @@ export class SimEventBuffer {
     event.strength = strength;
     event.ballId = ball ? ball.id : -1;
     event.ballType = ball ? ball.typeId : null;
+    event.heat = ball ? ball.heat : 0;
     event.depth = this.depth;
     event.scheme = this.scheme;
     this.count += 1;

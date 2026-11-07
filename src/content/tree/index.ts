@@ -5,6 +5,7 @@ import { geometryGroups, geometryNodes } from './geometry';
 import { matterGroups, matterNodes } from './matter';
 import { effectGemGroups, effectGemNodes } from './gemEffects';
 import { eventGemGroups, eventGemNodes } from './gemEvents';
+import { lawGemGroups, lawGemNodes } from './gemLaws';
 import { supportGemGroups, supportGemNodes } from './gemSupports';
 import { mechanismGroups, mechanismNodes } from './mechanism';
 import { polygonGroups, polygonNodes } from './polygons';
@@ -20,6 +21,7 @@ export const treeNodes: readonly TreeNodeDef[] = [
   ...eventGemNodes,
   ...effectGemNodes,
   ...supportGemNodes,
+  ...lawGemNodes,
   ...futureNodes,
 ];
 export const treeGroups: readonly TreeGroupDef[] = [
@@ -32,4 +34,5 @@ export const treeGroups: readonly TreeGroupDef[] = [
   ...eventGemGroups,
   ...effectGemGroups,
   ...supportGemGroups,
+  ...lawGemGroups,
 ];

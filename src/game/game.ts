@@ -4,7 +4,7 @@ import { TICK_SECONDS } from '../sim/constants';
 import { queuePush, type PushInput } from '../sim/push';
 import { applyBallType, clearBallState } from '../sim/ball';
 import { permanentBallCount } from '../sim/clones';
-import { setArenaSchemes } from '../sim/gems';
+import { setArenaLaw, setArenaSchemes } from '../sim/gems';
 import { stepWorld } from '../sim/step';
 import {
   createWorld,
@@ -21,7 +21,8 @@ import {
   TAP_ECHO_DELAY_SECONDS,
   TAP_ECHO_STRENGTH,
 } from './balance';
-import { TickEarnings } from './earnings';
+import { hotBonus, TickEarnings } from './earnings';
+import { LawEconomy } from './lawEconomy';
 import { SchemeRates } from './schemeRates';
 import {
   clearSlot,
@@ -51,6 +52,7 @@ export class Game {
   readonly world: World;
   readonly income = new IncomeTracker();
   readonly schemeRates = new SchemeRates();
+  private readonly lawEconomy = new LawEconomy();
   private stats: Stats;
   private lastTapTick = Number.NEGATIVE_INFINITY;
   private nextAutoTapTick = 0;
@@ -99,6 +101,7 @@ export class Game {
   /** Tap at a point in arena coordinates. Returns false while on cooldown. */
   tap(x: number, y: number): boolean {
     if (this.tapCooldownLeft() > 0) return false;
+    this.lawEconomy.touch();
     const arena = this.mainArena();
     const push: PushInput = {
       arenaIndex: MAIN_ARENA,
@@ -120,6 +123,7 @@ export class Game {
 
   /** Arena panel: switch the arena to an unlocked shape. */
   setShape(shapeId: ShapeId): boolean {
+    this.lawEconomy.touch();
     if (!unlockedShapes(this.state.nodeLevels).includes(shapeId)) return false;
     this.state.arena.shape = shapeId;
     this.applyStats();
@@ -128,6 +132,7 @@ export class Game {
 
   /** Arena panel: put a gem into a slot (moving it from wherever it was). */
   placeGem(slot: GemSlotRef, gemId: GemId): PlaceProblem | null {
+    this.lawEconomy.touch();
     const problem = placeProblem(this.state.arena, slot, gemId, this.state.nodeLevels, this.stats);
     if (problem) return problem;
     placeGem(this.state.arena, slot, gemId);
@@ -136,12 +141,14 @@ export class Game {
   }
 
   clearGemSlot(slot: GemSlotRef): void {
+    this.lawEconomy.touch();
     clearSlot(this.state.arena, slot);
     this.buildSchemes();
   }
 
   /** Arena panel: switch every ball in the arena to an unlocked type. */
   setBall(ballId: BallId): boolean {
+    this.lawEconomy.touch();
     if (!unlockedBalls(this.state.nodeLevels).includes(ballId)) return false;
     this.state.arena.ball = ballId;
     const arena = this.mainArena();
@@ -153,6 +160,7 @@ export class Game {
   }
 
   buy(nodeId: NodeId): boolean {
+    this.lawEconomy.touch();
     if (!buyLevel(this.state, nodeId, this.stats)) return false;
     this.stats = computeStats(this.state.nodeLevels);
     this.applyStats();
@@ -186,6 +194,7 @@ export class Game {
     const key = JSON.stringify(specs);
     if (key === this.builtSchemesKey) return;
     setArenaSchemes(this.mainArena(), specs);
+    setArenaLaw(this.mainArena(), this.stats['stat:law-slots'] > 0 ? this.state.arena.law : null);
     this.builtSchemesKey = key;
   }
 
@@ -200,9 +209,11 @@ export class Game {
   }
 
   private collectIncome(): void {
-    this.earnings.collect(this.world.events, this.stats, this.mainArena().schemes);
+    const arena = this.mainArena();
+    this.earnings.collect(this.world.events, this.stats, arena.schemes, hotBonus(arena.law));
     const amounts = this.earnings.amounts;
     amounts[MASS] = (amounts[MASS] ?? 0) + this.overflowMass();
+    this.lawEconomy.apply(arena.law, amounts, this.world, arena);
     for (const resource of resources) this.earn(resource.id, amounts[resource.id] ?? 0);
   }
 

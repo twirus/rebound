@@ -1,6 +1,6 @@
 import { Rng } from '../core/rng';
 import { shapes } from '../content/shapes';
-import type { BallId, ShapeDef, ShapeId } from '../content/types';
+import type { BallId, GemId, ShapeDef, ShapeId } from '../content/types';
 import { applyBallType, clearBallState, newBall, type Ball } from './ball';
 import { SimEventBuffer } from './events';
 import type { PendingEffect } from './gems/firing';
@@ -16,14 +16,19 @@ export interface Arena {
   minBounceSpeed: number;
   /** Multiplier on gravity, from the shape. */
   gravity: number;
-  /** Which way gravity pulls: 0 down, 1 left, 2 up, 3 right (gems can turn it). */
-  gravityDirection: number;
+  /** Unit vector gravity pulls along; (0, 1) is down. Gems and laws turn it. */
+  gravityX: number;
+  gravityY: number;
   /** Ticks since the last wall hit, for the "quiet" trigger. */
   quietTicks: number;
   /** Gem schemes running in this arena, in slot order. */
   schemes: Scheme[];
   /** Effects waiting to land: delayed, echoes, chain jumps. */
   pendingEffects: PendingEffect[];
+  /** The law gem in force, if any. */
+  law: GemId | null;
+  /** 0…1: how far the entropy law has built up (set by the game). */
+  entropy: number;
   shape: ShapeState;
   balls: Ball[];
 }
@@ -59,10 +64,13 @@ export function createWorld(seed: number): World {
     radius: shape.radius,
     minBounceSpeed: 0,
     gravity: shape.gravity ?? 1,
-    gravityDirection: 0,
+    gravityX: 0,
+    gravityY: 1,
     quietTicks: 0,
     schemes: [],
     pendingEffects: [],
+    law: null,
+    entropy: 0,
     shape: createShapeState(shape, shape.radius),
     balls: [],
   };
