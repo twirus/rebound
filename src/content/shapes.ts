@@ -18,11 +18,14 @@ export const shapes: readonly ShapeDef[] = [
     tags: ['break', 'escape'],
     resource: 'resource:shards',
     // Outermost ring: innerRadius + spacing × (count − 1); upgrades add rings outward.
-    radius: 292,
+    radius: 359,
+    // One small ball working its way out, ring by ring, is the whole show.
+    maxBalls: 1,
+    ballScale: 0.5,
     rings: {
-      count: 12,
-      innerRadius: 50,
-      spacing: 22,
+      count: 30,
+      innerRadius: 40,
+      spacing: 11,
       gapDegrees: 40,
       degreesPerSecond: 36,
       speedStep: 0.08,

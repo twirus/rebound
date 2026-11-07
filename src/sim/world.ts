@@ -85,8 +85,17 @@ function placeInSpawnArea(world: World, arena: Arena, ball: Ball): void {
   ball.prevY = ball.y;
 }
 
-export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
+/** Gives the ball the size and physics of its type, scaled for the arena's shape. */
+export function applyBallType(ball: Ball, typeId: BallId, arena: Arena): void {
   const def = findBall(typeId);
+  const radius = def.radius * (findShape(arena.shapeId).ballScale ?? 1);
+  ball.typeId = typeId;
+  ball.radius = radius;
+  ball.mass = radius * radius;
+  ball.gravityScale = def.gravityScale;
+}
+
+export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
   const ball: Ball = {
     id: world.nextBallId,
     typeId,
@@ -96,10 +105,11 @@ export function spawnBall(world: World, arena: Arena, typeId: BallId): Ball {
     vy: 0,
     prevX: 0,
     prevY: 0,
-    radius: def.radius,
-    mass: def.radius * def.radius,
-    gravityScale: def.gravityScale,
+    radius: 0,
+    mass: 0,
+    gravityScale: 0,
   };
+  applyBallType(ball, typeId, arena);
   placeInSpawnArea(world, arena, ball);
   ball.vx = world.rng.nextRange(-SPAWN_SPEED, SPAWN_SPEED);
   world.nextBallId += 1;
@@ -117,5 +127,8 @@ export function setArenaShape(world: World, arena: Arena, def: ShapeDef, radius:
   arena.radius = radius;
   arena.shape = createShapeState(def, radius);
   if (!shapeChanged) return;
-  for (const ball of arena.balls) placeInSpawnArea(world, arena, ball);
+  for (const ball of arena.balls) {
+    applyBallType(ball, ball.typeId, arena);
+    placeInSpawnArea(world, arena, ball);
+  }
 }

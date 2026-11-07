@@ -33,7 +33,7 @@ export const geometryNodes: readonly TreeNodeDef[] = [
     requires: ['node:rings'],
     maxLevel: 8,
     costs: [{ resource: SHARDS, base: 30, growth: 1.95 }],
-    effects: [{ stat: 'stat:ring-count', add: 1 }],
+    effects: [{ stat: 'stat:ring-count', add: 3 }],
   },
   {
     id: 'node:ring-gap',

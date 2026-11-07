@@ -89,6 +89,23 @@ function respawn(ball: Ball, state: RingsState, context: ShapeContext): void {
   ball.vy = -RESPAWN_SPEED;
 }
 
+/**
+ * Every ring is gone: the round is won. All rings come back with their gaps in
+ * line and spinning forward again, and the balls return to the centre.
+ */
+function startNewRound(state: RingsState, context: ShapeContext): void {
+  for (const ring of state.rings) {
+    ring.broken = false;
+    ring.regrowLeft = 0;
+    ring.gapX = detCos(GAP_START_ANGLE);
+    ring.gapY = detSin(GAP_START_ANGLE);
+    ring.turnSin = Math.abs(ring.turnSin);
+  }
+  for (const ball of context.arena.balls) respawn(ball, state, context);
+  const { events, arenaIndex } = context;
+  events.push('round-reset', arenaIndex, 0, 0, state.rings.length);
+}
+
 /** Returns true when the ball hit or broke this ring, so outer rings need no check. */
 function touchRing(
   ring: Ring,
@@ -147,12 +164,16 @@ export const ringsBehavior: ShapeBehavior<RingsState> = {
     };
   },
 
-  step(state, { arena }) {
+  step(state, context) {
+    if (state.rings.every((ring) => ring.broken)) {
+      startNewRound(state, context);
+      return;
+    }
     for (const ring of state.rings) {
       rotateGap(ring);
       if (!ring.broken) continue;
       ring.regrowLeft -= 1;
-      if (ring.regrowLeft <= 0 && ringIsClear(ring, arena.balls)) ring.broken = false;
+      if (ring.regrowLeft <= 0 && ringIsClear(ring, context.arena.balls)) ring.broken = false;
     }
   },
 

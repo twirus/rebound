@@ -1,4 +1,5 @@
-export type SimEventKind = 'wall-hit' | 'ball-collision' | 'push' | 'ring-break' | 'escape';
+export type SimEventKind =
+  'wall-hit' | 'ball-collision' | 'push' | 'ring-break' | 'escape' | 'round-reset';
 
 export interface SimEvent {
   kind: SimEventKind;

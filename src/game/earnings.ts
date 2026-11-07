@@ -24,6 +24,7 @@ export class TickEarnings {
           shards += stats['stat:shards-per-escape'];
           break;
         case 'push':
+        case 'round-reset':
           break;
       }
     }

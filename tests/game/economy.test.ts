@@ -159,6 +159,17 @@ describe('game', () => {
     expect(game.world.arenas[0]?.shape.kind).toBe('rings');
   });
 
+  it('keeps one ball in Rings and brings the rest back in the Circle', () => {
+    const state = richState();
+    state.nodeLevels['node:rings'] = 1;
+    state.nodeLevels['node:extra-ball'] = 4;
+    const game = new Game(state, 4);
+    game.setShape('shape:rings');
+    expect(game.world.arenas[0]?.balls).toHaveLength(1);
+    game.setShape('shape:circle');
+    expect(game.world.arenas[0]?.balls).toHaveLength(5);
+  });
+
   it('earns Shards in the Rings arena', () => {
     const state = newGameState();
     state.nodeLevels['node:rings'] = 1;

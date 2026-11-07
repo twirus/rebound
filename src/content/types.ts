@@ -61,6 +61,10 @@ export interface ShapeDef {
   resource: ResourceId;
   /** Arena radius in world units. */
   radius: number;
+  /** Most balls this shape holds; the rest wait for a roomier shape. No limit when omitted. */
+  maxBalls?: number;
+  /** Ball size in this shape relative to the ball type; 1 when omitted. */
+  ballScale?: number;
   rings?: RingsParams;
 }
 

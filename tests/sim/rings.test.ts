@@ -5,7 +5,7 @@ import { stepWorld } from '../../src/sim/step';
 import { findShape, setArenaShape, type Arena, type World } from '../../src/sim/world';
 import { worldWithBalls } from './helpers';
 
-const RADIUS = 292;
+const RADIUS = 359;
 const REGROW_TICKS = 8 * 120;
 
 function ringsWorld(): { world: World; arena: Arena; state: RingsState; innerRadius: number } {
@@ -36,9 +36,9 @@ function countEvents(world: World, ticks: number, kind: SimEventKind): number {
 describe('rings', () => {
   it('builds the configured number of rings, innermost first', () => {
     const { state, innerRadius } = ringsWorld();
-    expect(state.rings).toHaveLength(12);
-    expect(innerRadius).toBeCloseTo(50);
-    expect(state.rings[11]?.radius).toBeCloseTo(RADIUS);
+    expect(state.rings).toHaveLength(30);
+    expect(innerRadius).toBeCloseTo(40);
+    expect(state.rings[29]?.radius).toBeCloseTo(RADIUS);
   });
 
   it('breaks a ring when a ball flies through its gap', () => {
@@ -48,6 +48,20 @@ describe('rings', () => {
     // Gaps start lined up, so the ball may shatter several rings in a row.
     expect(countEvents(world, 30, 'ring-break')).toBeGreaterThanOrEqual(1);
     expect(state.rings[0]?.broken).toBe(true);
+  });
+
+  it('starts a new round once every ring is broken', () => {
+    const { world, arena, state, innerRadius } = ringsWorld();
+    for (const ring of state.rings) {
+      ring.broken = true;
+      ring.regrowLeft = REGROW_TICKS;
+      ring.turnSin = -Math.abs(ring.turnSin);
+    }
+    place(arena, 0, RADIUS - 5, 0, 0);
+    expect(countEvents(world, 1, 'round-reset')).toBe(1);
+    expect(state.rings.every((ring) => !ring.broken && ring.turnSin > 0)).toBe(true);
+    const ball = arena.balls[0];
+    expect(Math.hypot(ball?.x ?? 0, ball?.y ?? 0)).toBeLessThan(innerRadius);
   });
 
   it('lines the gaps up again after winding back the same time', () => {
@@ -66,8 +80,9 @@ describe('rings', () => {
 
   it('reverses the spin of every ring when one breaks', () => {
     const { world, arena, state, innerRadius } = ringsWorld();
-    // Only the innermost ring can break, so the spin flips exactly once.
-    for (const ring of state.rings.slice(1)) {
+    // Only the innermost ring can be reached and broken, so the spin flips exactly once;
+    // the outermost stays whole so this is not a new round.
+    for (const ring of state.rings.slice(1, -1)) {
       ring.broken = true;
       ring.regrowLeft = REGROW_TICKS;
     }
@@ -79,8 +94,8 @@ describe('rings', () => {
 
   it('bounces a ball off the solid part and keeps the ring whole', () => {
     const { world, arena, state, innerRadius } = ringsWorld();
-    place(arena, 0, innerRadius - 15, 0, 400);
-    expect(countEvents(world, 30, 'wall-hit')).toBeGreaterThan(0);
+    place(arena, 0, innerRadius - 8, 0, 400);
+    expect(countEvents(world, 8, 'wall-hit')).toBeGreaterThan(0);
     expect(state.rings[0]?.broken).toBe(false);
     const ball = arena.balls[0];
     expect(Math.hypot(ball?.x ?? 0, ball?.y ?? 0)).toBeLessThan(innerRadius);
@@ -112,7 +127,7 @@ describe('rings', () => {
     const { world, arena, state } = ringsWorld();
     const outer = state.rings[state.rings.length - 1];
     if (!outer) throw new Error('No ring');
-    place(arena, outer.gapX * (outer.radius - 4), outer.gapY * (outer.radius - 4), 0, 0);
+    place(arena, outer.gapX * (outer.radius - 1), outer.gapY * (outer.radius - 1), 0, 0);
     expect(countEvents(world, 1, 'escape')).toBe(1);
     expect(outer.broken).toBe(true);
   });

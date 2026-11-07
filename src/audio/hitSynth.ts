@@ -90,7 +90,7 @@ export class HitSynth {
     } else if (event.kind === 'ring-break') {
       const inward = 1 - event.strength / arenaRadius;
       this.playNote(semitonesToHz(noteAt(inward) + BREAK_OCTAVE_SHIFT), BREAK_GAIN);
-    } else if (event.kind === 'escape') {
+    } else if (event.kind === 'escape' || event.kind === 'round-reset') {
       const base = noteAt(0) + BREAK_OCTAVE_SHIFT;
       this.playNote(semitonesToHz(base), ESCAPE_GAIN);
       this.playNote(semitonesToHz(base + ESCAPE_INTERVAL), ESCAPE_GAIN);

@@ -4,7 +4,7 @@ import { queuePush, type PushInput } from '../sim/push';
 import { stepWorld } from '../sim/step';
 import {
   createWorld,
-  findBall,
+  applyBallType,
   findShape,
   setArenaShape,
   spawnBall,
@@ -114,13 +114,8 @@ export class Game {
   setBall(ballId: BallId): boolean {
     if (!unlockedBalls(this.state.nodeLevels).includes(ballId)) return false;
     this.state.arena.ball = ballId;
-    const def = findBall(ballId);
-    for (const ball of this.mainArena().balls) {
-      ball.typeId = ballId;
-      ball.radius = def.radius;
-      ball.mass = def.radius * def.radius;
-      ball.gravityScale = def.gravityScale;
-    }
+    const arena = this.mainArena();
+    for (const ball of arena.balls) applyBallType(ball, ballId, arena);
     return true;
   }
 
@@ -141,7 +136,10 @@ export class Game {
     const arena = this.mainArena();
     this.buildShape(arena);
     arena.minBounceSpeed = this.stats['stat:min-bounce-speed'];
-    while (arena.balls.length < this.stats['stat:ball-count']) {
+    const shapeLimit = findShape(this.state.arena.shape).maxBalls ?? Number.POSITIVE_INFINITY;
+    const wanted = Math.min(this.stats['stat:ball-count'], shapeLimit);
+    if (arena.balls.length > wanted) arena.balls.length = wanted;
+    while (arena.balls.length < wanted) {
       spawnBall(this.world, arena, this.state.arena.ball);
     }
   }
