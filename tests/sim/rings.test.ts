@@ -35,9 +35,9 @@ function countEvents(world: World, ticks: number, kind: SimEventKind): number {
 describe('rings', () => {
   it('builds the configured number of rings, innermost first', () => {
     const { state, innerRadius } = ringsWorld();
-    expect(state.rings).toHaveLength(14);
-    expect(innerRadius).toBeCloseTo(32);
-    expect(state.rings[13]?.radius).toBeCloseTo(RADIUS);
+    expect(state.rings).toHaveLength(34);
+    expect(innerRadius).toBeCloseTo(29);
+    expect(state.rings[33]?.radius).toBeCloseTo(RADIUS);
   });
 
   it('breaks a ring when a ball flies through its gap', () => {
@@ -110,6 +110,8 @@ describe('rings', () => {
     const { world, arena, state } = ringsWorld();
     const outer = state.rings[state.rings.length - 1];
     if (!outer) throw new Error('No ring');
+    // In play the ball only reaches the last ring after breaking every one inside it.
+    for (const ring of state.rings.slice(0, -1)) ring.broken = true;
     place(arena, outer.gapX * (outer.radius - 1), outer.gapY * (outer.radius - 1), 0, 0);
     expect(countEvents(world, 1, 'escape')).toBe(1);
     expect(outer.broken).toBe(true);

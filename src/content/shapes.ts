@@ -23,12 +23,14 @@ export const shapes: readonly ShapeDef[] = [
     maxBalls: 1,
     ballScale: 0.75,
     rings: {
-      count: 14,
-      innerRadius: 32,
-      spacing: 15,
+      // Closer than the ball is wide: broken rings stay gone for the round, so the
+      // ball only ever sits inside the innermost whole ring, never between two.
+      count: 34,
+      innerRadius: 29,
+      spacing: 6,
       gapDegrees: 40,
       degreesPerSecond: 36,
-      speedStep: 0.08,
+      speedStep: 0.04,
     },
   },
 ];
