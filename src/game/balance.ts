@@ -21,8 +21,8 @@ export const BASE_STATS: Readonly<Record<StatId, number>> = {
   'stat:ring-count': 0,
   /** Added to the gap width of every ring, degrees. */
   'stat:ring-gap': 0,
-  /** Multiplies the time a broken ring needs to grow back. */
-  'stat:ring-regrow': 1,
+  /** Multiplies how fast the rings spin; slower rings keep their gaps in line longer. */
+  'stat:ring-spin': 1,
   'stat:shards-per-break': 1,
   'stat:shards-per-escape': 5,
 };

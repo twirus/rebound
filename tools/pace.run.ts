@@ -14,6 +14,7 @@ const MINUTES = Number(import.meta.env.PACE_MINUTES ?? 20);
 const TAPS = import.meta.env.PACE_TAPS !== '0';
 const TICKS_PER_SECOND = Math.round(1 / TICK_SECONDS);
 const TAP_POINT = { x: 0, y: 120 };
+const RINGS_EVERY_MINUTES = 3;
 
 function cheapestAffordable(game: Game): (typeof treeNodes)[number] | undefined {
   const levels = game.state.nodeLevels;
@@ -23,6 +24,13 @@ function cheapestAffordable(game: Game): (typeof treeNodes)[number] | undefined 
     .sort(
       (a, b) => (nextPrices(a, levels)[0]?.amount ?? 0) - (nextPrices(b, levels)[0]?.amount ?? 0),
     )[0];
+}
+
+/** Like a player who checks in on the Rings now and then: one minute out of every three. */
+function pickShape(game: Game, second: number): void {
+  const wanted =
+    Math.floor(second / 60) % RINGS_EVERY_MINUTES === 0 ? 'shape:rings' : 'shape:circle';
+  if (game.state.arena.shape !== wanted) game.setShape(wanted);
 }
 
 function clock(seconds: number): string {
@@ -40,14 +48,13 @@ it('prints the purchase timeline', () => {
       game.step();
       if (TAPS) game.tap(TAP_POINT.x, TAP_POINT.y);
     }
+    pickShape(game, second);
     let node = cheapestAffordable(game);
     while (node) {
       const level = (game.state.nodeLevels[node.id] ?? 0) + 1;
       game.buy(node.id);
       longestWait = Math.max(longestWait, second - lastPurchase);
       lines.push(`${clock(second)}  +${second - lastPurchase}s  ${node.id} → ${level}`);
-      // Rings earn Shards; the bot moves there as soon as they open.
-      if (node.unlocks?.includes('shape:rings')) game.setShape('shape:rings');
       lastPurchase = second;
       node = cheapestAffordable(game);
     }

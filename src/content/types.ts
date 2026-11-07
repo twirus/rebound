@@ -49,7 +49,6 @@ export interface RingsParams {
   degreesPerSecond: number;
   /** Each next ring outward spins this share faster. */
   speedStep: number;
-  regrowSeconds: number;
 }
 
 export interface ShapeDef {
@@ -119,7 +118,7 @@ export type StatId =
   | 'stat:impulse-multiplier'
   | 'stat:ring-count'
   | 'stat:ring-gap'
-  | 'stat:ring-regrow'
+  | 'stat:ring-spin'
   | 'stat:shards-per-break'
   | 'stat:shards-per-escape';
 

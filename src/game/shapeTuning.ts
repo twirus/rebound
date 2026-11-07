@@ -12,7 +12,7 @@ export function tunedShape(def: ShapeDef, stats: Stats): ShapeDef {
       ...def.rings,
       count,
       gapDegrees: def.rings.gapDegrees + stats['stat:ring-gap'],
-      regrowSeconds: def.rings.regrowSeconds * stats['stat:ring-regrow'],
+      degreesPerSecond: def.rings.degreesPerSecond * stats['stat:ring-spin'],
     },
   };
 }
